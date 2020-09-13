@@ -25,10 +25,10 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 
 [AzurePipelines(
-    "Test",
+    "PushTestPackages",
     AzurePipelinesImage.WindowsLatest,
     InvokedTargets = new []{ nameof(PushAzure)},
-    TriggerBranchesInclude = new []{ "dev"},
+    TriggerBranchesInclude = new []{ "develop"},
     ImportSystemAccessTokenAs = nameof(AccessToken),
     NonEntryTargets = new []{ nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack)}
 )]
@@ -55,7 +55,7 @@ class Build : NukeBuild {
     [Parameter("Access Token")]
     public string AccessToken { get; set; }
 
-    AbsolutePath SourceDirectory => RootDirectory; // / "source";
+    AbsolutePath SourceDirectory => RootDirectory / "source";
     AbsolutePath TestsDirectory => RootDirectory / "tests";
     AbsolutePath OutputDirectory => RootDirectory / "output";
     
