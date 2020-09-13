@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <RootNamespace>SignalARRR</RootNamespace>
+    <AssemblyName>SignalARRR.Common</AssemblyName>
+    <Authors>Bernhard Windisch</Authors>
+    <Company>-</Company>
+    <Description></Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/windischb/SignalARRR</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/windischb/SignalARRR</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageId>SignalARRR.Common</PackageId>
+    <Product>SignalARRR.Common</Product>
+    <Version></Version>
+    <LangVersion>8</LangVersion>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>SignalARRR.Server</AssemblyName>
+    <RootNamespace>SignalARRR.Server</RootNamespace>
+    <Authors>Bernhard Windisch</Authors>
+    <Company>-</Company>
+    <Description></Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/windischb/SignalARRR</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/windischb/SignalARRR</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageId>SignalARRR.Server</PackageId>
+    <Product>SignalARRR.Server</Product>
+    <Version></Version>
+    <LangVersion>8</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Reflectensions" Version="4.3.0" />
+    <PackageReference Include="Reflectensions.Json" Version="4.3.0" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SignalARRR.Common\SignalARRR.Common.csproj" />
+  </ItemGroup>
+
+</Project>
