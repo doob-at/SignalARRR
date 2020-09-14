@@ -25,14 +25,21 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 
 [AzurePipelines(
-    "Test",
+    "PushTestPackages",
     AzurePipelinesImage.WindowsLatest,
     InvokedTargets = new []{ nameof(PushAzure)},
-    TriggerBranchesInclude = new []{ "dev"},
+    TriggerBranchesInclude = new []{ "develop"},
     ImportSystemAccessTokenAs = nameof(AccessToken),
     NonEntryTargets = new []{ nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack)}
 )]
-
+[AzurePipelines(
+    "ReleasePackages",
+    AzurePipelinesImage.WindowsLatest,
+    InvokedTargets = new[] { nameof(Test) },
+    TriggerBranchesInclude = new[] { "master" },
+    ImportSystemAccessTokenAs = nameof(AccessToken),
+    NonEntryTargets = new[] { nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack) }
+)]
 
 class Build : NukeBuild {
     /// Support plugins are available for:
@@ -55,10 +62,16 @@ class Build : NukeBuild {
     [Parameter("Access Token")]
     public string AccessToken { get; set; }
 
-    AbsolutePath SourceDirectory => RootDirectory; // / "source";
+    AbsolutePath SourceDirectory => RootDirectory / "source";
     AbsolutePath TestsDirectory => RootDirectory / "tests";
     AbsolutePath OutputDirectory => RootDirectory / "output";
-    
+
+    Target Test => _ => _
+        .Executes(() => {
+            var json = JsonSerializer.Serialize(GitVersion, new JsonSerializerOptions() {WriteIndented = true});
+            Logger.Info(json);
+        });
+
     Target Clean => _ => _
         .Before(Restore)
         .Executes(() => {
@@ -148,4 +161,5 @@ class Build : NukeBuild {
                 });
         });
 
+    
 }

@@ -9,7 +9,7 @@
 #
 #     - To trigger manual generation invoke:
 #
-#         nuke --generate-configuration AzurePipelines_Test --host AzurePipelines
+#         nuke --generate-configuration AzurePipelines_ReleasePackages --host AzurePipelines
 #
 # </auto-generated>
 # ------------------------------------------------------------------------------
@@ -17,7 +17,7 @@
 trigger:
   branches:
     include:
-      - dev
+      - master
 
 stages:
   - stage: windows_latest
@@ -26,12 +26,12 @@ stages:
     pool:
       vmImage: 'windows-latest'
     jobs:
-      - job: PushAzure
-        displayName: 'PushAzure'
+      - job: Test
+        displayName: 'Test'
         dependsOn: [  ]
         steps:
           - task: CmdLine@2
             inputs:
-              script: './build.cmd Restore Pack PushAzure --skip'
+              script: './build.cmd Test --skip'
             env:
               AccessToken: $(System.AccessToken)
