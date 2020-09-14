@@ -16,6 +16,8 @@
 
 trigger:
   - master
+  
+pr: none
 
 stages:
   - stage: windows_latest
