@@ -40,6 +40,14 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     ImportSystemAccessTokenAs = nameof(AccessToken),
     NonEntryTargets = new[] { nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack) }
 )]
+[AzurePipelines(
+    "TestMergeRequest",
+    AzurePipelinesImage.WindowsLatest,
+    InvokedTargets = new[] { nameof(Test) },
+    TriggerBranchesExclude = new []{ "master", "develop"},
+    ImportSystemAccessTokenAs = nameof(AccessToken),
+    NonEntryTargets = new[] { nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack) }
+)]
 
 class Build : NukeBuild {
     /// Support plugins are available for:
