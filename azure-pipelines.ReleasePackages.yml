@@ -15,9 +15,7 @@
 # ------------------------------------------------------------------------------
 
 trigger:
-  branches:
-    include:
-      - master
+  - master
 
 stages:
   - stage: windows_latest
