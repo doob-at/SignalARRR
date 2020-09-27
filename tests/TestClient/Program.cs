@@ -14,6 +14,7 @@ namespace TestClient {
         static HARRRConnection connection;
 
         static async Task Main(string[] args) {
+
             connection = HARRRConnection.Create(
                 builder => builder
                     .WithUrl("http://localhost.:5000/signalr/testhub", options => {
@@ -29,8 +30,8 @@ namespace TestClient {
                     .ConfigureLogging(log => {
                         log.AddConsole();
                         log.SetMinimumLevel(LogLevel.Error);
-                    }),
-                optionsBuilder => optionsBuilder.UseHttpResponse()
+                    })
+                //optionsBuilder => optionsBuilder.UseHttpResponse()
                 );
 
 
