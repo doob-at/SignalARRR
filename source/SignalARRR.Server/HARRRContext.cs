@@ -73,9 +73,17 @@ namespace SignalARRR.Server {
                 throw new Exception(res.ErrorMessage);
             }
 
-            if (res.PayLoad is JObject jObject) {
-                return Converter.Json.ToObject<TResult>(jObject);
+            if (!String.IsNullOrWhiteSpace(res.ErrorMessage)) {
+                throw new Exception(res.ErrorMessage);
             }
+
+            if (res.PayLoad is JToken jToken) {
+                return Converter.Json.ToObject<TResult>(jToken);
+            }
+
+            //if (res.PayLoad is JArray jArray) {
+            //    return Converter.Json.ToObject<TResult>(jArray);
+            //}
 
             if (res.PayLoad.TryTo<TResult>(out var value)) {
                 return value;

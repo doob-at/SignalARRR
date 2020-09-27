@@ -60,53 +60,62 @@ namespace SignalARRR {
 
             this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest, (requestMessage) => {
 
-                if (!UsesNewtonsoftJson) {
-                    var requestJson = JsonSerializer.Serialize(requestMessage);
-                    requestMessage = Convert.ToObject<ServerRequestMessage>(requestJson);
-                }
-               
                 var msg = new ClientResponseMessage(requestMessage.Id);
 
-                if (ServerRequestHandlers.TryGetValue(requestMessage.Method, out var handler)) {
-
-                    var pars = handler.Method.GetParameters();
-                    var arguments = new List<object>();
-                    
-                    for (var i = 0; i < pars.Length; i++) {
-                        var pInfo = pars[i];
-                        var obj = requestMessage.Arguments[i];
-                        if (obj is JToken je) {
-                            obj = Convert.ToObject(je.ToString(), pInfo.ParameterType);
-                        } 
-                        arguments.Add(obj.To(pInfo.ParameterType));
+                try {
+                    if (!UsesNewtonsoftJson) {
+                        var requestJson = JsonSerializer.Serialize(requestMessage);
+                        requestMessage = Convert.ToObject<ServerRequestMessage>(requestJson);
                     }
 
-                    var argsArray = arguments.ToArray();
-                    object res = null;
+                    
 
-                    var isTaskReturn = handler.Method.ReturnType == typeof(Task) || handler.Method.ReturnType.IsGenericTypeOf(typeof(Task<>));
+                    if (ServerRequestHandlers.TryGetValue(requestMessage.Method, out var handler)) {
 
-                    if (isTaskReturn) {
-                        res = AsyncHelper.RunSync(() =>
-                            ((Task) handler.DynamicInvoke(argsArray)).ConvertToTaskOf<object>());
+                        var pars = handler.Method.GetParameters();
+                        var arguments = new List<object>();
+
+                        for (var i = 0; i < pars.Length; i++) {
+                            var pInfo = pars[i];
+                            var obj = requestMessage.Arguments[i];
+                            if (obj is JToken je) {
+                                obj = Convert.ToObject(je.ToString(), pInfo.ParameterType);
+                            }
+                            arguments.Add(obj.To(pInfo.ParameterType));
+                        }
+
+                        var argsArray = arguments.ToArray();
+                        object res = null;
+
+                        var isTaskReturn = handler.Method.ReturnType == typeof(Task) || handler.Method.ReturnType.IsGenericTypeOf(typeof(Task<>));
+
+                        if (isTaskReturn) {
+                            res = AsyncHelper.RunSync(() =>
+                                ((Task)handler.DynamicInvoke(argsArray)).ConvertToTaskOf<object>());
+                        } else {
+                            res = handler.DynamicInvoke(argsArray);
+                        }
+
+                        msg.PayLoad = res;
+
                     } else {
-                        res = handler.DynamicInvoke(argsArray);
+                        msg.ErrorMessage = $"Method '{requestMessage.Method}' not Found";
                     }
-                    
-                    msg.PayLoad = res;
 
-                } else {
-                    msg.ErrorMessage = $"Method '{requestMessage.Method}' not Found";
-                }
+                    if (Options.HttpResponse) {
+                        var payload = Convert.ToJson(msg);
+                        var url = HubConnection.GetResponseUri();
+                        var httpClient = new HttpClient();
+                        httpClient.PostAsync(url, new StringContent(payload));
+                    } else {
+                        HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
+                    }
+                } catch (Exception e) {
 
-                if (Options.HttpResponse) {
-                    var payload = Convert.ToJson(msg);
-                    var url = HubConnection.GetResponseUri();
-                    var httpClient = new HttpClient();
-                    httpClient.PostAsync(url, new StringContent(payload));
-                } else {
+                    msg.ErrorMessage = e.GetBaseException().Message;
                     HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
                 }
+                
 
 
             });

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -19,6 +20,7 @@ namespace SignalARRR.Server.ExtensionMethods {
 
             var ret = endpoints.MapHub<THub>(pattern);
             endpoints.MapPost($"{pattern}/response", async context => {
+                context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 100_000_000;
                 var requestManager = context.RequestServices.GetRequiredService<ServerRequestManager>();
                 var json = await context.GetRawBodyStringAsync(Encoding.UTF8);
                 var msg = Converter.Json.ToObject<ClientResponseMessage>(json);
@@ -35,6 +37,7 @@ namespace SignalARRR.Server.ExtensionMethods {
 
             var ret = endpoints.MapHub<THub>(pattern, configureOptions);
             endpoints.MapPost($"{pattern}/response", async context => {
+                context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 100_000_000;
                 var requestManager = context.RequestServices.GetRequiredService<ServerRequestManager>();
                 var json = await context.GetRawBodyStringAsync(Encoding.UTF8);
                 var msg = Converter.Json.ToObject<ClientResponseMessage>(json);
