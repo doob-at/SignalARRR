@@ -11,5 +11,6 @@
         public static string ReplyServerRequest { get; } = "ReplyServerRequest";
 
         public static string ChallengeAuthentication { get; } = "ChallengeAuthentication";
+        public static string SendMessageToClient { get; set; } = "SendMessageToClient";
     }
 }

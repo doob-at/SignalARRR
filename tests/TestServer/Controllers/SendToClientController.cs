@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using SignalARRR;
 using SignalARRR.Server;
 using SignalARRR.Server.ExtensionMethods;
+using TestShared;
 
 namespace TestServer.Controllers {
     [Route("api/sendtoclient")]
@@ -44,5 +45,23 @@ namespace TestServer.Controllers {
 
             return Ok(result);
         }
+
+        [HttpPost("name")]
+        public async Task<IActionResult> GetName() {
+
+
+            var cl = ClientManager
+                .GetAllClients()
+                .FirstOrDefault()?.GetTypedMethods<ITestClientMethods>("ClientTest");
+
+            if (cl == null)
+                return NotFound();
+
+           
+            
+
+            return Ok(await cl.GetDictionary(DateTime.Now));
+        }
+
     }
 }

@@ -4,8 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SignalARRR;
+using TestShared;
 
 namespace TestClient {
     class Program {
@@ -18,18 +20,21 @@ namespace TestClient {
                         options.Headers["#tag"] = "bpk";
                         options.Headers["#Hostname"] = Environment.MachineName;
                         options.Transports = HttpTransportType.WebSockets;
-                        options.AccessTokenProvider = () => {
-                            var dt = DateTime.Now.ToString();
-                            return Task.FromResult(dt);
-                        };
+                        //options.AccessTokenProvider = () => {
+                        //    var dt = DateTime.Now.ToString();
+                        //    return Task.FromResult(dt);
+                        //};
                     })
+                   
                     .ConfigureLogging(log => {
                         log.AddConsole();
-                        log.SetMinimumLevel(LogLevel.Debug);
+                        log.SetMinimumLevel(LogLevel.Error);
                     }),
                 optionsBuilder => optionsBuilder.UseHttpResponse()
                 );
 
+
+            connection.RegisterClientMethods(new TestClientMethods());
 
             await connection.StartAsync();
 
@@ -46,6 +51,9 @@ namespace TestClient {
 
 
 
+            var testHubClient = connection.GetTypedMethods<ITestHub>("Test1");
+            var testHubClient2 = connection.GetTypedMethods<ITestHub>("Test1");
+            var testHubClient3 = connection.GetTypedMethods<ITestHub>("Test1");
 
             var channelCounter = new ChannelCounter(connection);
             var channelCounterTask = new ChannelCounterTask(connection);
@@ -94,8 +102,19 @@ namespace TestClient {
                     case 'g': {
 
                             try {
-                                var dt = connection.InvokeAsync<Guid>("Test1.StringToGuid", Guid.NewGuid()).GetAwaiter().GetResult();
-                                Console.WriteLine(dt);
+                                var g = Guid.NewGuid();
+                                //var dt = connection.InvokeAsync<Guid>("Test1.StringToGuid", g).GetAwaiter().GetResult();
+                                //Console.WriteLine(dt);
+
+                                
+                                var stg = testHubClient3.StringToGuid(g).GetAwaiter().GetResult();
+                                Console.WriteLine($"From Typed Client: {stg}");
+
+                                testHubClient.Ping();
+
+                                var dt2 = testHubClient.GetDate2(DateTime.Now.AddHours(10));
+                                Console.WriteLine(dt2);
+
                             } catch (Exception e) {
                                 Console.WriteLine(e);
 
@@ -192,6 +211,7 @@ namespace TestClient {
                                 dm.Name = "Bernhard";
                                 dm.Timestamp = DateTime.Now;
                                 dm.Year = dm.Timestamp.Year + 10;
+                                
                                 var res = connection.InvokeAsync<DummyClass>("Test1.GetDummyOrException", dm).GetAwaiter().GetResult();
                                 Console.WriteLine(res.Name);
                             } catch (Exception e) {
@@ -207,7 +227,6 @@ namespace TestClient {
             });
 
 
-
             await ConsoleHelper.RegisterNewLineHandlerAsync();
 
             await connection.StopAsync();
@@ -216,5 +235,7 @@ namespace TestClient {
         static object GetDate() {
             return new { Date = DateTime.Now, Name = "Bernhard" };
         }
+
+        
     }
 }

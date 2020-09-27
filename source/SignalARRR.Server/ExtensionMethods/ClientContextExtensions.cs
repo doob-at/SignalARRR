@@ -52,6 +52,7 @@ namespace SignalARRR.Server.ExtensionMethods {
             foreach (var context in clientContext) {
 
                 try {
+                    
                     result = await context.Invoke<TResult>(method, arguments, cancellationToken);
                     break;
                 } catch (Exception e) {
@@ -63,7 +64,11 @@ namespace SignalARRR.Server.ExtensionMethods {
             return result;
         }
 
-        
+
+        public static T InvokeSingle<T>(this IEnumerable<ClientContext> clientContext) {
+
+            return default;
+        }
 
         public static IEnumerable<ClientContext> WithAttribute(this IEnumerable<ClientContext> clientContexts, string key) {
             return clientContexts.Where(c => c.Attributes.Has(key));

@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\source\SignalARRR.Server\SignalARRR.Server.csproj" />
+    <ProjectReference Include="..\..\TestShared\TestShared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SignalARRR.Client {
+namespace TestClient {
     public class ClientMethods {
-      
-        
     }
 }

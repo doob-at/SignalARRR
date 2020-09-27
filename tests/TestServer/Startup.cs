@@ -29,7 +29,7 @@ namespace TestServer
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
             });
 
-            services.AddAuthentication("AccessToken").AddTestTokenValidation();
+            //services.AddAuthentication("AccessToken").AddTestTokenValidation();
 
             services.AddSignalR().AddNewtonsoftJsonProtocol();
 
@@ -38,13 +38,13 @@ namespace TestServer
             services.AddSingleton<ConsoleWriter>();
             services.AddSingleton<ConsoleWriter2>();
 
-            services.AddAuthorization((options) => {
-                options.AddPolicy("TestPolicy1", policy => {
-                    policy.AddAuthenticationSchemes("AccessToken");
-                    policy.RequireAuthenticatedUser();
-                    policy.RequireRole("testrole");
-                });
-            });
+            //services.AddAuthorization((options) => {
+            //    options.AddPolicy("TestPolicy1", policy => {
+            //        policy.AddAuthenticationSchemes("AccessToken");
+            //        policy.RequireAuthenticatedUser();
+            //        policy.RequireRole("testrole");
+            //    });
+            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,8 +59,8 @@ namespace TestServer
 
             app.UseRouting();
 
-            app.UseAuthentication();
-            app.UseAuthorization();
+            //app.UseAuthentication();
+            //app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

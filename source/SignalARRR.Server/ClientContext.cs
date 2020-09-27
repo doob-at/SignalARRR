@@ -124,6 +124,12 @@ namespace SignalARRR.Server {
             var authentication = new SignalARRRAuthentication(ServiceProvider);
             return await authentication.Authorize(this, res, methodInfo);
         }
+
+
+        public T GetTypedMethods<T>(string nameSpace = null) {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(this, nameSpace);
+            return instance;
+        }
     }
 
 

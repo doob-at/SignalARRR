@@ -13,10 +13,11 @@ using Reflectensions.ExtensionMethods;
 using SignalARRR.Attributes;
 using SignalARRR.Server;
 using SignalARRR.Server.ExtensionMethods;
+using TestShared;
 
 namespace TestServer {
     [MessageName("Test1")]
-    public class TestHubMessageMethods : ServerMethods<TestHub> {
+    public class TestHubMessageMethods : ServerMethods<TestHub>, ITestHub {
         private readonly ConsoleWriter2 _consoleWriter2;
 
         private IObservable<int> GetNextInt { get; }
@@ -41,12 +42,20 @@ namespace TestServer {
             return $"{DateTime.Now} -- From ServerMethod {Context.ConnectionId}";
         }
 
+        public string GetDate2(DateTime date) {
+            _consoleWriter2.WriteInfo("From ServerMethod");
+            Clients.All.SendAsync("test", "Das ist ein Test");
+
+            return $"{DateTime.Now} -- From ServerMethod {Context.ConnectionId} - Sent: {date}";
+        }
+
         public void Ping() {
             Console.WriteLine($"Get Ping from {ClientContext.RemoteIp}");
         }
 
-        public async Task<Guid> StringToGuid(Guid guid) {
-            return guid;
+        public Task<Guid> StringToGuid(Guid guid, string test) {
+            Console.WriteLine(test);
+            return Task.FromResult(guid);
         }
 
         public IObservable<string> ObservableCounter(int count, int delay, CancellationToken cancellationToken, [FromServices]ConsoleWriter writer) {
@@ -54,6 +63,15 @@ namespace TestServer {
             return GetNextInt
                 .Take(count)
                 .Do(i => writer.WriteInfo($"ObservableCounter: {i}"))
+                .Select(i => $"ObservableCounter: {i}");
+
+        }
+
+        public IObservable<string> ObservableCounter(int count, int delay) {
+
+            return GetNextInt
+                .Take(count)
+                .Do(i => _consoleWriter2.WriteInfo($"ObservableCounter: {i}"))
                 .Select(i => $"ObservableCounter: {i}");
 
         }

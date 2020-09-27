@@ -8,6 +8,8 @@ namespace SignalARRR.Server {
         Task<TResult> InvokeClientAsync<TResult>(string clientId, ServerRequestMessage serverRequestMessage,
             CancellationToken cancellationToken);
 
+        Task SendClientAsync(string clientId, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken);
+
         Task<string> Challenge(string clientId);
     }
 }

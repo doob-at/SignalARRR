@@ -17,7 +17,7 @@ namespace TestServer.LocalTokenAuthenticatonHandler
          
         }
 
-        protected override async Task<AuthenticateResult> HandleAuthenticateAsync() {
+        protected override Task<AuthenticateResult> HandleAuthenticateAsync() {
 
 
             //var endp = this.Context.GetEndpoint();
@@ -29,7 +29,7 @@ namespace TestServer.LocalTokenAuthenticatonHandler
             ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "access_token", "name", "role");
             ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
             AuthenticationTicket authenticationTicket = new AuthenticationTicket(claimsPrincipal, "test");
-            return AuthenticateResult.Success(authenticationTicket);
+            return Task.FromResult(AuthenticateResult.Success(authenticationTicket));
 
            
         }

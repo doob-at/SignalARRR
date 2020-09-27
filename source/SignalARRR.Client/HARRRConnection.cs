@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -10,10 +11,14 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using Reflectensions.ExtensionMethods;
+using Reflectensions.Helper;
 using Reflectensions.JsonConverters;
+using SignalARRR.Attributes;
 using SignalARRR.Client;
 using SignalARRR.Client.ExtensionMethods;
 using SignalARRR.Constants;
@@ -31,6 +36,8 @@ namespace SignalARRR {
             .RegisterJsonConverter<DefaultDictionaryConverter>()
         );
 
+        private bool UsesNewtonsoftJson { get; }
+
         public Reflectensions.Json Convert => lazyJson.Value;
 
         private HARRRConnection(HubConnection hubConnection, HARRRConnectionOptions options = null) {
@@ -38,6 +45,9 @@ namespace SignalARRR {
             Options = options ?? new HARRRConnectionOptions();
 
             HubConnection = hubConnection;
+
+            UsesNewtonsoftJson = HubConnection.UsesNewtonsoftJson();
+
             AccessTokenProvider = hubConnection.GetAccessTokenProvider() ?? (() => Task.FromResult<string>(null));
 
             this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication, requestMessage => {
@@ -50,24 +60,39 @@ namespace SignalARRR {
 
             this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest, (requestMessage) => {
 
+                if (!UsesNewtonsoftJson) {
+                    var requestJson = JsonSerializer.Serialize(requestMessage);
+                    requestMessage = Convert.ToObject<ServerRequestMessage>(requestJson);
+                }
+               
                 var msg = new ClientResponseMessage(requestMessage.Id);
 
                 if (ServerRequestHandlers.TryGetValue(requestMessage.Method, out var handler)) {
 
                     var pars = handler.Method.GetParameters();
                     var arguments = new List<object>();
+                    
                     for (var i = 0; i < pars.Length; i++) {
                         var pInfo = pars[i];
                         var obj = requestMessage.Arguments[i];
-                        if (obj is JsonElement je) {
+                        if (obj is JToken je) {
                             obj = Convert.ToObject(je.ToString(), pInfo.ParameterType);
                         } 
                         arguments.Add(obj.To(pInfo.ParameterType));
                     }
 
                     var argsArray = arguments.ToArray();
+                    object res = null;
 
-                    var res = handler.DynamicInvoke(argsArray);
+                    var isTaskReturn = handler.Method.ReturnType == typeof(Task) || handler.Method.ReturnType.IsGenericTypeOf(typeof(Task<>));
+
+                    if (isTaskReturn) {
+                        res = AsyncHelper.RunSync(() =>
+                            ((Task) handler.DynamicInvoke(argsArray)).ConvertToTaskOf<object>());
+                    } else {
+                        res = handler.DynamicInvoke(argsArray);
+                    }
+                    
                     msg.PayLoad = res;
 
                 } else {
@@ -87,16 +112,24 @@ namespace SignalARRR {
             });
         }
 
+        public T GetTypedMethods<T>(string nameSpace = null) {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(this, nameSpace);
+            return instance;
+        }
+
         public HARRRConnection RegisterClientMethod(MethodInfo method, object target, string prefix = null) {
 
-            var name = $"{prefix}{method.Name}";
+            var messageNamePrefix = prefix.ToNull() ?? method.DeclaringType?.GetCustomAttribute<MessageNameAttribute>()?.Name ?? method.DeclaringType ?.Name;
+            
+
+            var name = $"{messageNamePrefix?.Trim('.')}.{method.Name}".Trim('.');
             ServerRequestHandlers.TryAdd(name, DelegateHelper.CreateDelegate(method, target));
             return this;
         }
 
         public HARRRConnection RegisterClientMethods(object target, string prefix = null) {
 
-            var methods = target.GetType().GetMethods();
+            var methods = target.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
             foreach (var methodInfo in methods) {
                 
                 RegisterClientMethod(methodInfo, target, prefix);
@@ -143,7 +176,7 @@ namespace SignalARRR {
 
         public async Task<object> InvokeCoreAsync(string methodName, Type returnType, object[] args, CancellationToken cancellationToken = default) {
             var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
-            return HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { msg }, cancellationToken);
+            return await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { msg }, cancellationToken);
         }
 
         public async Task InvokeCoreAsync(string methodName, object[] args, CancellationToken cancellationToken = default) {
@@ -185,10 +218,19 @@ namespace SignalARRR {
         }
 
         public static HARRRConnection Create(Action<HubConnectionBuilder> builder, Action<HARRRConnectionOptionsBuilder> optionsBuilder = null) {
-            return Create(builder?.InvokeAction()?.Build(), optionsBuilder?.InvokeAction());
+
+            var intermediateBuilder = builder?.InvokeAction();
+            
+            var hasJsonProtocol = intermediateBuilder.Services.Any(s => s.ServiceType == typeof(IHubProtocol) && s.ImplementationType == typeof(NewtonsoftJsonHubProtocol));
+            if (!hasJsonProtocol) {
+                intermediateBuilder = intermediateBuilder.AddNewtonsoftJsonProtocol();
+            }
+            
+            return Create(intermediateBuilder?.Build(), optionsBuilder?.InvokeAction());
         }
 
         public static HARRRConnection Create(HubConnection hubConnection, Action<HARRRConnectionOptionsBuilder> optionsBuilder = null) {
+            
             return Create(hubConnection, optionsBuilder.InvokeAction());
         }
 

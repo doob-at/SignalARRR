@@ -33,6 +33,10 @@ namespace SignalARRR.Server {
 
         }
 
+        public Task SendClientAsync(string clientId, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
+            return SendClientMessageAsync(clientId, MethodNames.SendMessageToClient, serverRequestMessage, cancellationToken);
+        }
+
         public async Task<string> Challenge(string clientId) {
 
             try {
@@ -82,9 +86,16 @@ namespace SignalARRR.Server {
 
         }
 
+        private async Task SendClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
 
-        
+
+            var m = ServerRequestManager.AddRequest(serverRequestMessage.Id);
+            await HubContext.Clients.Client(clientId).SendCoreAsync(methodName, new[] { serverRequestMessage }, cancellationToken);
+            
+        }
+
+
     }
 
-   
+
 }
