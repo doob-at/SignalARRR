@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Threading.Channels" Version="4.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Threading.Channels">
       <HintPath>..\tests\TestClient_FullFramework\bin\Debug\System.Threading.Channels.dll</HintPath>
     </Reference>

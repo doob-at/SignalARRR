@@ -29,6 +29,7 @@ namespace SignalARRR {
         private HARRRConnectionOptions Options { get; }
         private ConcurrentDictionary<string, Delegate> ServerRequestHandlers { get; } = new ConcurrentDictionary<string, Delegate>();
 
+        private ISignalARRRClientMethodsCollection MethodsCollection { get; } = new SignalARRRClientMethodsCollection();
         private Func<Task<string>> AccessTokenProvider { get; }
 
         private readonly Lazy<Reflectensions.Json> lazyJson = new Lazy<Reflectensions.Json>(() => new Reflectensions.Json()
@@ -58,7 +59,7 @@ namespace SignalARRR {
                 HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
             });
 
-            this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest, (requestMessage) => {
+            this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest, async (requestMessage) => {
 
                 var msg = new ClientResponseMessage(requestMessage.Id);
 
@@ -68,52 +69,52 @@ namespace SignalARRR {
                         requestMessage = Convert.ToObject<ServerRequestMessage>(requestJson);
                     }
 
-                    
+                    msg.PayLoad = await InvokeMethodAsync(requestMessage);
 
-                    if (ServerRequestHandlers.TryGetValue(requestMessage.Method, out var handler)) {
+                    //if (ServerRequestHandlers.TryGetValue(requestMessage.Method, out var handler)) {
 
-                        var pars = handler.Method.GetParameters();
-                        var arguments = new List<object>();
+                    //    var pars = handler.Method.GetParameters();
+                    //    var arguments = new List<object>();
 
-                        for (var i = 0; i < pars.Length; i++) {
-                            var pInfo = pars[i];
-                            var obj = requestMessage.Arguments[i];
-                            if (obj is JToken je) {
-                                obj = Convert.ToObject(je.ToString(), pInfo.ParameterType);
-                            }
-                            arguments.Add(obj.To(pInfo.ParameterType));
-                        }
+                    //    for (var i = 0; i < pars.Length; i++) {
+                    //        var pInfo = pars[i];
+                    //        var obj = requestMessage.Arguments[i];
+                    //        if (obj is JToken je) {
+                    //            obj = Convert.ToObject(je.ToString(), pInfo.ParameterType);
+                    //        }
+                    //        arguments.Add(obj.To(pInfo.ParameterType));
+                    //    }
 
-                        var argsArray = arguments.ToArray();
-                        object res = null;
+                    //    var argsArray = arguments.ToArray();
+                    //    object res = null;
 
-                        var isTaskReturn = handler.Method.ReturnType == typeof(Task) || handler.Method.ReturnType.IsGenericTypeOf(typeof(Task<>));
+                    //    var isTaskReturn = handler.Method.ReturnType == typeof(Task) || handler.Method.ReturnType.IsGenericTypeOf(typeof(Task<>));
 
-                        if (isTaskReturn) {
-                            res = AsyncHelper.RunSync(() =>
-                                ((Task)handler.DynamicInvoke(argsArray)).ConvertToTaskOf<object>());
-                        } else {
-                            res = handler.DynamicInvoke(argsArray);
-                        }
+                    //    if (isTaskReturn) {
+                    //        res = AsyncHelper.RunSync(() =>
+                    //            ((Task)handler.DynamicInvoke(argsArray)).ConvertToTaskOf<object>());
+                    //    } else {
+                    //        res = handler.DynamicInvoke(argsArray);
+                    //    }
 
-                        msg.PayLoad = res;
+                    //    msg.PayLoad = res;
 
-                    } else {
-                        msg.ErrorMessage = $"Method '{requestMessage.Method}' not Found";
-                    }
+                    //} else {
+                    //    msg.ErrorMessage = $"Method '{requestMessage.Method}' not Found";
+                    //}
 
                     if (Options.HttpResponse) {
                         var payload = Convert.ToJson(msg);
                         var url = HubConnection.GetResponseUri();
                         var httpClient = new HttpClient();
-                        httpClient.PostAsync(url, new StringContent(payload));
+                        await httpClient.PostAsync(url, new StringContent(payload));
                     } else {
-                        HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
+                        await HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
                     }
                 } catch (Exception e) {
 
                     msg.ErrorMessage = e.GetBaseException().Message;
-                    HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
+                    await HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
                 }
                 
 
@@ -126,29 +127,105 @@ namespace SignalARRR {
             return instance;
         }
 
-        public HARRRConnection RegisterClientMethod(MethodInfo method, object target, string prefix = null) {
+        private async Task<object> InvokeMethodAsync(ServerRequestMessage serverRequestMessage) {
 
-            var messageNamePrefix = prefix.ToNull() ?? method.DeclaringType?.GetCustomAttribute<MessageNameAttribute>()?.Name ?? method.DeclaringType ?.Name;
-            
 
-            var name = $"{messageNamePrefix?.Trim('.')}.{method.Name}".Trim('.');
-            ServerRequestHandlers.TryAdd(name, DelegateHelper.CreateDelegate(method, target));
-            return this;
-        }
 
-        public HARRRConnection RegisterClientMethods(object target, string prefix = null) {
+            var methodInfo = MethodsCollection.GetMethod(serverRequestMessage.Method);
 
-            var methods = target.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-            foreach (var methodInfo in methods) {
-                
-                RegisterClientMethod(methodInfo, target, prefix);
+            if (methodInfo == null) {
+                var errorMsg = $"Method '{serverRequestMessage.Method}' not found";
+               
+                throw new Exception(errorMsg);
             }
             
+           
+            var parameters = BuildExecuteMethodParameters(methodInfo, serverRequestMessage.Arguments);
+
+            var instance = Activator.CreateInstance(methodInfo.DeclaringType);
+
+            if (serverRequestMessage.GenericArguments.Any()) {
+                var arrType = serverRequestMessage.GenericArguments.Select(t => Type.GetType(t));
+                methodInfo = methodInfo.MakeGenericMethod(arrType.ToArray());
+                return await InvokeHelper.InvokeMethodAsync<object>(instance, methodInfo, parameters);
+            }
+
+            if (methodInfo.ReturnType == typeof(void) || methodInfo.ReturnType == typeof(Task)) {
+                await InvokeHelper.InvokeVoidMethodAsync(instance, methodInfo, parameters);
+                return null;
+            } else {
+                return await InvokeHelper.InvokeMethodAsync<object>(instance, methodInfo, parameters);
+            }
+
+
+        }
+
+        private object[] BuildExecuteMethodParameters(MethodInfo methodInfo, IEnumerable<object> parameters, CancellationToken cancellation = default) {
+
+            int paramsPosition = 0;
+            var @params = parameters.ToList();
+            return methodInfo.GetParameters().Select(p => {
+
+                if (p.ParameterType == typeof(CancellationToken)) {
+                    return cancellation;
+                }
+                
+                if (@params.Count < paramsPosition) {
+                    throw new IndexOutOfRangeException();
+                }
+
+                var par = @params[paramsPosition];
+
+                if (par != null && p.ParameterType != par.GetType()) {
+
+                    if (par is JToken jt) {
+                        par = jt.ToObject(p.ParameterType);
+                    } else {
+                        par = par.To(p.ParameterType);
+                    }
+
+                }
+
+                paramsPosition++;
+                return par;
+
+            }).ToArray();
+
+        }
+
+        
+
+
+        //public HARRRConnection RegisterClientMethod(MethodInfo method, object target, string prefix = null) {
+
+        //    var messageNamePrefix = prefix.ToNull() ?? method.DeclaringType?.GetCustomAttribute<MessageNameAttribute>()?.Name ?? method.DeclaringType ?.Name;
+
+
+        //    var name = $"{messageNamePrefix?.Trim('.')}.{method.Name}".Trim('.');
+        //    ServerRequestHandlers.TryAdd(name, DelegateHelper.CreateDelegate(method, target));
+        //    return this;
+        //}
+
+        public HARRRConnection RegisterClientMethods(Type type, string prefix = null) {
+
+            var rootName = type.GetCustomAttribute<MessageNameAttribute>()?.Name ?? prefix.ToNull() ?? type.Name;
+            var methodsWithName = type.GetMethods().Select(m => (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
+            foreach (var (methodInfo, methodNameAttribute) in methodsWithName) {
+                var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
+                var concatNames = $"{rootName}.{methodName}";
+                MethodsCollection.AddMethod(concatNames, methodInfo);
+            }
+
             return this;
         }
 
+        public HARRRConnection RegisterClientMethods<TInterface>(string prefix = null) {
+            return RegisterClientMethods(typeof(TInterface));
+        }
 
-      
+
+
+
         public IDisposable On(string methodName, Type[] parameterTypes, Func<object[], object, Task> handler, object state) {
             return HubConnection.On(methodName, parameterTypes, handler, state);
         }

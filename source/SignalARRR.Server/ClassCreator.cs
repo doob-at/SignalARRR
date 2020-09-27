@@ -31,10 +31,13 @@ namespace SignalARRR.Server {
         private MemberDeclarationSyntax CreateMethod(MethodInfo methodInfo) {
 
             var isVoid = methodInfo.ReturnType == typeof(void);
+            var isGenericReturn = methodInfo.ReturnType.IsGenericParameter;
+
             var isTask = methodInfo.ReturnType == typeof(Task);
             var isTaskOfT = methodInfo.ReturnType.IsGenericTypeOf(typeof(Task<>));
 
-        
+            var genericArguments = methodInfo.GetGenericArguments().Select(arg => arg.Name);
+       
 
             var methodParameters = methodInfo.GetParameters().Where(p => !p.GetCustomAttributes().Any(attr => attr.GetType().Name.Equals("FromServicesAttribute")));
             var returnType = isVoid ? SyntaxFactory.ParseTypeName("void") : AsTypeSyntax(methodInfo.ReturnType);
@@ -47,10 +50,29 @@ namespace SignalARRR.Server {
             //var paramsArray = $"var paramsArray = new object[] {{{String.Join(", ", methodParameters.Where(p => p.ParameterType != typeof(CancellationToken)).Select(p => p.Name))}}};";
             var cancellationToken = methodParameters.Where(p => p.ParameterType == typeof(CancellationToken))
                 .Select(p => p.Name).FirstOrDefault().ToNull();
-            
+
+
+            var gArrayBlock = "";
+            var genArgumentsToTypesArray = "";
+            if (genericArguments.Any()) {
+
+                var gArrayBuilder = new StringBuilder();
+                gArrayBuilder.AppendLine("var gargs = new List<string>();");
+
+                foreach (var genericArgument in genericArguments) {
+                    gArrayBuilder.AppendLine($"gargs.Add(typeof({genericArgument}).FullName);");
+                }
+
+                gArrayBlock = gArrayBuilder.ToString();
+                genArgumentsToTypesArray = $", gargs.ToArray()";
+            }
+           
+            var l = new List<string>();
+
             var insertCancellationToken = cancellationToken != null ? $", {cancellationToken}" : String.Empty;
             if (isVoid || isTask) {
-                body.AppendLine($"var task = _helper.Send(_clientcontext, methodName, paramsArray{insertCancellationToken});");
+                body.AppendLine(gArrayBlock);
+                body.AppendLine($"var task = _helper.Send(_clientcontext, methodName, paramsArray{genArgumentsToTypesArray}{insertCancellationToken});");
                 if (isTask) {
                     body.AppendLine("await task;");
                 } else {
@@ -70,8 +92,8 @@ namespace SignalARRR.Server {
                 } else {
                     invokeGenericArgument = $"<{AsTypeSyntax(methodInfo.ReturnType)}>";
                 }
-
-                body.AppendLine($"var task = _helper.Invoke{invokeGenericArgument}(_clientcontext, methodName, paramsArray{insertCancellationToken});");
+                body.AppendLine(gArrayBlock);
+                body.AppendLine($"var task = _helper.Invoke{invokeGenericArgument}(_clientcontext, methodName, paramsArray{genArgumentsToTypesArray}{insertCancellationToken});");
                 if (isTaskOfT) {
                     body.AppendLine($"return await task;");
                 } else {
@@ -91,8 +113,24 @@ namespace SignalARRR.Server {
 
             var modifiers = (isTaskOfT || isTask) ? SyntaxKind.PublicKeyword | SyntaxKind.AsyncKeyword : SyntaxKind.PublicKeyword;
 
+
+            var methodGenericArgument = "";
+            if (genericArguments.Any()) {
+                var genArgsSyntax = methodInfo.GetGenericArguments().ToList();
+                    var text = genArgsSyntax.Select(arg => {
+                        //var syn = AsTypeSyntax(arg);
+                        //    var synres = syn.;
+                            return arg.Name;
+                    }).ToList();
+                methodGenericArgument = $"<{String.Join(", ", genArgsSyntax)}>";
+            }
+
+
+            var na = $"{methodInfo.Name}{methodGenericArgument}";
+
             // Create a method
-            var methodDeclaration = SyntaxFactory.MethodDeclaration(returnType, methodInfo.Name)
+            var methodDeclaration = SyntaxFactory.MethodDeclaration(returnType, na)
+                
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
 
                 .AddParameterListParameters(syntaxParameters.ToArray())
@@ -105,8 +143,20 @@ namespace SignalARRR.Server {
             return methodDeclaration;
         }
 
+        public static ExpressionSyntax GenerateMethodIdentifier(string methodName, string targetIdentifierOrTypeName, Type[] typeArguments = null) {
+            ExpressionSyntax methodIdentifier = SyntaxFactory.IdentifierName(targetIdentifierOrTypeName + "." + methodName);
+            if (typeArguments != null) {
+                methodIdentifier = SyntaxFactory.GenericName(SyntaxFactory.Identifier(targetIdentifierOrTypeName + "." + methodName),
+                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Select(AsTypeSyntax))));
+            }
+            return methodIdentifier;
+        }
 
-        
+      
+
+
+
+
         private MemberDeclarationSyntax[] CreateMethods() => FromType.GetMethods().Select(CreateMethod).ToArray();
 
 
@@ -172,11 +222,17 @@ namespace SignalARRR.Server {
                 .AddMembers(CreateMethods());
 
 
+            
 
             var @namespace = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(namespaceName)).NormalizeWhitespace();
-            @namespace = @namespace.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")));
+            @namespace = @namespace.AddUsings(
+                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
+                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic"))
+            );
             @namespace = @namespace.AddMembers(classDeclaration);
 
+
+            var c = @namespace.ToFullString();
             // Normalize and get code as string.
             var code = @namespace
                 .NormalizeWhitespace()
@@ -234,6 +290,12 @@ namespace SignalARRR.Server {
         /// Generates the type syntax.
         /// </summary>
         private static TypeSyntax AsTypeSyntax(Type type) {
+            
+
+            if (type.IsGenericParameter) {
+                return SyntaxFactory.ParseTypeName(type.Name);
+            }
+
             string name = $"{type.Namespace}.{type.Name.Replace('+', '.')}";
 
             if (type.IsGenericType) {
@@ -286,25 +348,27 @@ namespace SignalARRR.Server {
             return output.Reader;
         }
 
-        public async Task<TResult> Invoke<TResult>(ClientContext clientContext, string method, object[] arguments, CancellationToken cancellationToken = default) {
+        public async Task<TResult> Invoke<TResult>(ClientContext clientContext, string method, object[] arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
 
             using var serviceProviderScope = clientContext.ServiceProvider.CreateScope();
 
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
             var msg = new ServerRequestMessage(method, arguments);
+            msg.GenericArguments = genericArguments;
             var res = await harrrContext.InvokeClientAsync<TResult>(clientContext.Id, msg, cancellationToken);
             return res;
 
         }
 
-        public async Task Send(ClientContext clientContext, string method, object[] arguments, CancellationToken cancellationToken = default) {
+        public async Task Send(ClientContext clientContext, string method, object[] arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
 
             using var serviceProviderScope = clientContext.ServiceProvider.CreateScope();
 
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
             var msg = new ServerRequestMessage(method, arguments);
+            msg.GenericArguments = genericArguments;
             await harrrContext.SendClientAsync(clientContext.Id, msg, cancellationToken);
         }
     }

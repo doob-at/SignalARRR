@@ -35,7 +35,10 @@ namespace TestClient {
                 );
 
 
-            connection.RegisterClientMethods(new TestClientMethods());
+            connection.RegisterClientMethods<PS>();
+
+
+            connection.RegisterClientMethods<TestClientMethods>();
 
             await connection.StartAsync();
 

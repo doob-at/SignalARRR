@@ -46,8 +46,26 @@ namespace TestServer.Controllers {
             return Ok(result);
         }
 
-        [HttpPost("name")]
-        public async Task<IActionResult> GetName() {
+        //[HttpPost("name")]
+        //public async Task<IActionResult> GetName() {
+
+
+        //    var cl = ClientManager
+        //        .GetAllClients()
+        //        .FirstOrDefault()?.GetTypedMethods<ITestClientMethods>("ClientTest");
+
+        //    if (cl == null)
+        //        return NotFound();
+
+           
+            
+
+        //    return Ok(await cl.GetDictionary(DateTime.Now));
+        //}
+
+
+        [HttpGet("generic")]
+        public async Task<IActionResult> GetGeneric() {
 
 
             var cl = ClientManager
@@ -57,10 +75,10 @@ namespace TestServer.Controllers {
             if (cl == null)
                 return NotFound();
 
-           
-            
+            var res = cl.Invoke<DateTime>("test");
 
-            return Ok(await cl.GetDictionary(DateTime.Now));
+
+            return Ok(res);
         }
 
     }

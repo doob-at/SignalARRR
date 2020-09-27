@@ -15,6 +15,7 @@ namespace SignalARRR.Client.ExtensionMethods {
             var arguments = new List<Type>(methodParameters.Select(p => p.ParameterType));
             arguments.Add(methodInfo.ReturnType);
             
+            
             if (methodInfo.ReturnType == typeof(void)) {
                 var action = Expression.GetActionType(arguments.ToArray());
                 return Delegate.CreateDelegate(action, target, methodInfo);

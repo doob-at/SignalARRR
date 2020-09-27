@@ -18,5 +18,6 @@ namespace TestShared
         void Ping();
 
         string GetDate2(DateTime date);
+
     }
 }

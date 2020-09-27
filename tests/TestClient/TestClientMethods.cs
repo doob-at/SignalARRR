@@ -31,6 +31,16 @@ namespace TestClient {
             return Task.FromResult(dict);
         }
 
+        public Task<T> InvokeAsync<T>(string command, Dictionary<string, object> variables = null) {
+            Console.WriteLine(typeof(T));
+            return default;
+        }
+
+        public T Invoke<T>(string command, Dictionary<string, object> variables = null) {
+            Console.WriteLine(typeof(T));
+            return default;
+        }
+
         public string GetName() {
             return $"{Environment.MachineName}\\{Environment.UserName}";
         }
