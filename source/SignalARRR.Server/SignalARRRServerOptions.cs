@@ -1,13 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace SignalARRR.Server {
     public class SignalARRRServerOptions {
 
-        public List<Assembly> AssembliesContainingServerMethods = new List<Assembly>()
+        public List<Assembly> AssembliesContainingServerMethods { get; }= new List<Assembly>()
         {
             Assembly.GetEntryAssembly()
         };
+
+        public List<Type> PreBuiltClientMethods { get; } = new List<Type>();
 
     }
 
@@ -23,6 +26,13 @@ namespace SignalARRR.Server {
             return this;
         }
 
+        public SignalARRRServerOptionsBuilder PreBuiltClientMethods<T>() {
+            if (!_options.PreBuiltClientMethods.Contains(typeof(T))) {
+                _options.PreBuiltClientMethods.Add(typeof(T));
+            }
+
+            return this;
+        }
 
         public static implicit operator SignalARRRServerOptions(SignalARRRServerOptionsBuilder builder) {
             return builder._options;

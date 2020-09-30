@@ -33,7 +33,7 @@ namespace TestServer
 
             services.AddSignalR().AddNewtonsoftJsonProtocol();
 
-            services.AddSignalARRR();
+            services.AddSignalARRR(builder => builder.AddServerMethodsFrom());
 
             services.AddSingleton<ConsoleWriter>();
             services.AddSingleton<ConsoleWriter2>();

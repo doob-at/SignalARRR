@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using Reflectensions;
 using Reflectensions.ExtensionMethods;
 using Reflectensions.Helper;
 using Reflectensions.JsonConverters;
@@ -38,8 +39,7 @@ namespace SignalARRR {
         );
 
         private bool UsesNewtonsoftJson { get; }
-
-        public Reflectensions.Json Convert => lazyJson.Value;
+        private bool UsesMessagePack { get; }
 
         private HARRRConnection(HubConnection hubConnection, HARRRConnectionOptions options = null) {
 
@@ -48,6 +48,7 @@ namespace SignalARRR {
             HubConnection = hubConnection;
 
             UsesNewtonsoftJson = HubConnection.UsesNewtonsoftJson();
+            UsesMessagePack = HubConnection.UsesMessagePack();
 
             AccessTokenProvider = hubConnection.GetAccessTokenProvider() ?? (() => Task.FromResult<string>(null));
 
@@ -64,47 +65,16 @@ namespace SignalARRR {
                 var msg = new ClientResponseMessage(requestMessage.Id);
 
                 try {
-                    if (!UsesNewtonsoftJson) {
+                    if (!UsesNewtonsoftJson && !UsesMessagePack) {
                         var requestJson = JsonSerializer.Serialize(requestMessage);
-                        requestMessage = Convert.ToObject<ServerRequestMessage>(requestJson);
+                        requestMessage = Json.Converter.ToObject<ServerRequestMessage>(requestJson);
                     }
 
                     msg.PayLoad = await InvokeMethodAsync(requestMessage);
 
-                    //if (ServerRequestHandlers.TryGetValue(requestMessage.Method, out var handler)) {
-
-                    //    var pars = handler.Method.GetParameters();
-                    //    var arguments = new List<object>();
-
-                    //    for (var i = 0; i < pars.Length; i++) {
-                    //        var pInfo = pars[i];
-                    //        var obj = requestMessage.Arguments[i];
-                    //        if (obj is JToken je) {
-                    //            obj = Convert.ToObject(je.ToString(), pInfo.ParameterType);
-                    //        }
-                    //        arguments.Add(obj.To(pInfo.ParameterType));
-                    //    }
-
-                    //    var argsArray = arguments.ToArray();
-                    //    object res = null;
-
-                    //    var isTaskReturn = handler.Method.ReturnType == typeof(Task) || handler.Method.ReturnType.IsGenericTypeOf(typeof(Task<>));
-
-                    //    if (isTaskReturn) {
-                    //        res = AsyncHelper.RunSync(() =>
-                    //            ((Task)handler.DynamicInvoke(argsArray)).ConvertToTaskOf<object>());
-                    //    } else {
-                    //        res = handler.DynamicInvoke(argsArray);
-                    //    }
-
-                    //    msg.PayLoad = res;
-
-                    //} else {
-                    //    msg.ErrorMessage = $"Method '{requestMessage.Method}' not Found";
-                    //}
-
+ 
                     if (Options.HttpResponse) {
-                        var payload = Convert.ToJson(msg);
+                        var payload = Json.Converter.ToJson(msg);
                         var url = HubConnection.GetResponseUri();
                         var httpClient = new HttpClient();
                         await httpClient.PostAsync(url, new StringContent(payload));
@@ -122,6 +92,12 @@ namespace SignalARRR {
             });
         }
 
+
+        public HARRRConnection PreBuiltTypedMethods<T>() {
+            ClassCreator.CreateTypeFromInterface<T>();
+            return this;
+        }
+
         public T GetTypedMethods<T>(string nameSpace = null) {
             var instance = ClassCreator.CreateInstanceFromInterface<T>(this, nameSpace);
             return instance;
@@ -131,21 +107,22 @@ namespace SignalARRR {
 
 
 
-            var methodInfo = MethodsCollection.GetMethod(serverRequestMessage.Method);
-
-            if (methodInfo == null) {
+            var methodCallInfo = MethodsCollection.GetMethod(serverRequestMessage.Method);
+            var methodInfo = methodCallInfo.MethodInfo;
+            if (methodCallInfo == null || methodInfo == null) {
                 var errorMsg = $"Method '{serverRequestMessage.Method}' not found";
                
                 throw new Exception(errorMsg);
             }
             
            
-            var parameters = BuildExecuteMethodParameters(methodInfo, serverRequestMessage.Arguments);
+            var parameters = BuildExecuteMethodParameters(methodCallInfo.MethodInfo, serverRequestMessage.Arguments);
 
-            var instance = Activator.CreateInstance(methodInfo.DeclaringType);
+            var instance = methodCallInfo.Factory != null ? methodCallInfo.Factory.DynamicInvoke() : Activator.CreateInstance(methodInfo.DeclaringType);
 
-            if (serverRequestMessage.GenericArguments.Any()) {
-                var arrType = serverRequestMessage.GenericArguments.Select(t => Type.GetType(t));
+            if (serverRequestMessage.GenericArguments?.Any() == true) {
+                
+                var arrType = serverRequestMessage.GenericArguments.Select(TypeHelper.FindType).ToList();
                 methodInfo = methodInfo.MakeGenericMethod(arrType.ToArray());
                 return await InvokeHelper.InvokeMethodAsync<object>(instance, methodInfo, parameters);
             }
@@ -193,7 +170,7 @@ namespace SignalARRR {
 
         }
 
-        
+
 
 
         //public HARRRConnection RegisterClientMethod(MethodInfo method, object target, string prefix = null) {
@@ -206,7 +183,21 @@ namespace SignalARRR {
         //    return this;
         //}
 
-        public HARRRConnection RegisterClientMethods(Type type, string prefix = null) {
+        //private HARRRConnection RegisterClientMethods(object instance, string prefix = null) {
+
+        //    var type = instance.GetType();
+        //    var rootName = type.GetCustomAttribute<MessageNameAttribute>()?.Name ?? prefix.ToNull() ?? type.Name;
+        //    var methodsWithName = type.GetMethods().Select(m => (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
+        //    foreach (var (methodInfo, methodNameAttribute) in methodsWithName) {
+        //        var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
+        //        var concatNames = $"{rootName}.{methodName}";
+        //        MethodsCollection.AddMethod(concatNames, methodInfo, instance);
+        //    }
+
+        //    return this;
+        //}
+
+        private HARRRConnection RegisterClientMethods(Type type, string prefix = null) {
 
             var rootName = type.GetCustomAttribute<MessageNameAttribute>()?.Name ?? prefix.ToNull() ?? type.Name;
             var methodsWithName = type.GetMethods().Select(m => (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
@@ -221,6 +212,19 @@ namespace SignalARRR {
 
         public HARRRConnection RegisterClientMethods<TInterface>(string prefix = null) {
             return RegisterClientMethods(typeof(TInterface));
+        }
+
+        public HARRRConnection RegisterClientMethods<TInterface>(Func<TInterface> factory, string prefix = null) {
+            var type = typeof(TInterface);
+            var rootName = type.GetCustomAttribute<MessageNameAttribute>()?.Name ?? prefix.ToNull() ?? type.Name;
+            var methodsWithName = type.GetMethods().Select(m => (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
+            foreach (var (methodInfo, methodNameAttribute) in methodsWithName) {
+                var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
+                var concatNames = $"{rootName}.{methodName}";
+                MethodsCollection.AddMethod(concatNames, methodInfo, factory);
+            }
+
+            return this;
         }
 
 
@@ -308,7 +312,10 @@ namespace SignalARRR {
             var intermediateBuilder = builder?.InvokeAction();
             
             var hasJsonProtocol = intermediateBuilder.Services.Any(s => s.ServiceType == typeof(IHubProtocol) && s.ImplementationType == typeof(NewtonsoftJsonHubProtocol));
-            if (!hasJsonProtocol) {
+            var hasMessagePackHubProtocol = intermediateBuilder.Services.Any(s => s.ServiceType == typeof(IHubProtocol) && s.ImplementationType.Name == "MessagePackHubProtocol");
+
+
+            if (!hasJsonProtocol && !hasMessagePackHubProtocol) {
                 intermediateBuilder = intermediateBuilder.AddNewtonsoftJsonProtocol();
             }
             

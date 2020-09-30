@@ -37,7 +37,7 @@ namespace SignalARRR.Server {
             var isTaskOfT = methodInfo.ReturnType.IsGenericTypeOf(typeof(Task<>));
 
             var genericArguments = methodInfo.GetGenericArguments().Select(arg => arg.Name);
-       
+
 
             var methodParameters = methodInfo.GetParameters().Where(p => !p.GetCustomAttributes().Any(attr => attr.GetType().Name.Equals("FromServicesAttribute")));
             var returnType = isVoid ? SyntaxFactory.ParseTypeName("void") : AsTypeSyntax(methodInfo.ReturnType);
@@ -66,7 +66,7 @@ namespace SignalARRR.Server {
                 gArrayBlock = gArrayBuilder.ToString();
                 genArgumentsToTypesArray = $", gargs.ToArray()";
             }
-           
+
             var l = new List<string>();
 
             var insertCancellationToken = cancellationToken != null ? $", {cancellationToken}" : String.Empty;
@@ -78,7 +78,7 @@ namespace SignalARRR.Server {
                 } else {
                     body.AppendLine("task.GetAwaiter().GetResult();");
                 }
-                
+
 
             } else {
                 var invokeGenericArgument = "";
@@ -99,7 +99,7 @@ namespace SignalARRR.Server {
                 } else {
                     body.AppendLine($"return task.GetAwaiter().GetResult();");
                 }
-                
+
 
             }
 
@@ -117,11 +117,11 @@ namespace SignalARRR.Server {
             var methodGenericArgument = "";
             if (genericArguments.Any()) {
                 var genArgsSyntax = methodInfo.GetGenericArguments().ToList();
-                    var text = genArgsSyntax.Select(arg => {
-                        //var syn = AsTypeSyntax(arg);
-                        //    var synres = syn.;
-                            return arg.Name;
-                    }).ToList();
+                var text = genArgsSyntax.Select(arg => {
+                    //var syn = AsTypeSyntax(arg);
+                    //    var synres = syn.;
+                    return arg.Name;
+                }).ToList();
                 methodGenericArgument = $"<{String.Join(", ", genArgsSyntax)}>";
             }
 
@@ -130,7 +130,7 @@ namespace SignalARRR.Server {
 
             // Create a method
             var methodDeclaration = SyntaxFactory.MethodDeclaration(returnType, na)
-                
+
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
 
                 .AddParameterListParameters(syntaxParameters.ToArray())
@@ -152,7 +152,7 @@ namespace SignalARRR.Server {
             return methodIdentifier;
         }
 
-      
+
 
 
 
@@ -180,8 +180,8 @@ namespace SignalARRR.Server {
             return constructor;
         }
 
-        public Type Build() {
 
+        public Type Build() {
             return generatedTypes.GetOrAdd(FromType, type => _build());
         }
 
@@ -222,7 +222,7 @@ namespace SignalARRR.Server {
                 .AddMembers(CreateMethods());
 
 
-            
+
 
             var @namespace = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(namespaceName)).NormalizeWhitespace();
             @namespace = @namespace.AddUsings(
@@ -239,7 +239,7 @@ namespace SignalARRR.Server {
                 .ToFullString();
 
             var syntaxtree = CSharpSyntaxTree.ParseText(code);
-            
+
             var assemblies = AppDomain
                 .CurrentDomain
                 .GetAssemblies()
@@ -290,7 +290,7 @@ namespace SignalARRR.Server {
         /// Generates the type syntax.
         /// </summary>
         private static TypeSyntax AsTypeSyntax(Type type) {
-            
+
 
             if (type.IsGenericParameter) {
                 return SyntaxFactory.ParseTypeName(type.Name);
@@ -315,7 +315,11 @@ namespace SignalARRR.Server {
 
 
         public static Type CreateTypeFromInterface<T>() {
-            return new ClassCreator(typeof(T)).Build();
+            return CreateTypeFromInterface(typeof(T));
+        }
+
+        public static Type CreateTypeFromInterface(Type type) {
+            return new ClassCreator(type).Build();
         }
 
         public static T CreateInstanceFromInterface<T>(params object[] args) {
@@ -348,6 +352,10 @@ namespace SignalARRR.Server {
             return output.Reader;
         }
 
+        public Task<TResult> Invoke<TResult>(ClientContext clientContext, string method, object[] arguments, CancellationToken cancellationToken = default) {
+            return Invoke<TResult>(clientContext, method, arguments, null, cancellationToken);
+        }
+
         public async Task<TResult> Invoke<TResult>(ClientContext clientContext, string method, object[] arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
 
             using var serviceProviderScope = clientContext.ServiceProvider.CreateScope();
@@ -359,6 +367,10 @@ namespace SignalARRR.Server {
             var res = await harrrContext.InvokeClientAsync<TResult>(clientContext.Id, msg, cancellationToken);
             return res;
 
+        }
+
+        public Task Send(ClientContext clientContext, string method, object[] arguments, CancellationToken cancellationToken = default) {
+            return Send(clientContext, method, arguments, null, cancellationToken);
         }
 
         public async Task Send(ClientContext clientContext, string method, object[] arguments, string[] genericArguments, CancellationToken cancellationToken = default) {

@@ -19,6 +19,9 @@ namespace SignalARRR.Server.ExtensionMethods {
             serviceCollection.AddSingleton<ClientManager>(sp => new ClientManager(sp.GetRequiredService<IHARRRClientManager>()));
             serviceCollection.AddTransient(typeof(ClientContextDispatcher<>));
 
+            foreach (var type in serverOptions.PreBuiltClientMethods) {
+                ClassCreator.CreateTypeFromInterface(type);
+            }
             return serviceCollection;
         }
 

@@ -28,6 +28,13 @@ namespace SignalARRR.Client.ExtensionMethods {
 
         }
 
+        public static bool UsesMessagePack(this HubConnection hubConnection) {
+
+            var sp = hubConnection.GetServiceProvider();
+            return  sp.GetService<IHubProtocol>().GetType().Name == "MessagePackHubProtocol";
+
+        }
+
         public static Uri GetResponseUri(this HubConnection hubConnection) {
 
             var serviceProvider = hubConnection.GetServiceProvider();

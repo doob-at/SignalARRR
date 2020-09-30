@@ -15,6 +15,12 @@ namespace TestClient {
 
         static async Task Main(string[] args) {
 
+
+
+           
+
+
+
             connection = HARRRConnection.Create(
                 builder => builder
                     .WithUrl("http://localhost.:5000/signalr/testhub", options => {

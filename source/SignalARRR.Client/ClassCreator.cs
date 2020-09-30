@@ -241,7 +241,7 @@ namespace SignalARRR.Client {
                 .ToArray();
 
 
-
+            
             var compilation = CSharpCompilation.Create(namespaceName).AddSyntaxTrees(syntaxtree)
                 .AddReferences(assemblies)
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -252,7 +252,7 @@ namespace SignalARRR.Client {
 
                 if (result.Success) {
                     ms.Seek(0, SeekOrigin.Begin);
-                    Assembly assembly = Assembly.Load(ms.ToArray());
+                    Assembly assembly = Assembly.Load(ms.GetBuffer());
 
                     var newTypeFullName = $"{namespaceName}.{className}";
 
@@ -260,15 +260,12 @@ namespace SignalARRR.Client {
 
                     return type;
                 } else {
-                    IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
+                    var failures = result.Diagnostics.Where(diagnostic =>
                         diagnostic.IsWarningAsError ||
-                        diagnostic.Severity == DiagnosticSeverity.Error);
+                        diagnostic.Severity == DiagnosticSeverity.Error).Select(d => new Exception(d.GetMessage()));
 
-                    foreach (Diagnostic diagnostic in failures) {
-                        Console.Error.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
-                    }
-
-                    return null;
+                    
+                    throw new AggregateException(failures);
                 }
             }
 
