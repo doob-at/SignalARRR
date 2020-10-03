@@ -13,6 +13,7 @@ using SignalARRR.Server;
 using SignalARRR.Server.ExtensionMethods;
 using SignalARRR.Server.JsonConverters;
 using TestServer.LocalTokenAuthenticatonHandler;
+using TestShared;
 
 namespace TestServer
 {
@@ -33,7 +34,8 @@ namespace TestServer
 
             services.AddSignalR().AddNewtonsoftJsonProtocol();
 
-            services.AddSignalARRR(builder => builder.AddServerMethodsFrom());
+            services.AddSignalARRR(builder => builder
+                .PreBuiltClientMethods<ITestClientMethods>());
 
             services.AddSingleton<ConsoleWriter>();
             services.AddSingleton<ConsoleWriter2>();

@@ -41,8 +41,17 @@ namespace TestClient {
             return default;
         }
 
+        public void Nix() {
+            
+        }
+
         public string GetName() {
             return $"{Environment.MachineName}\\{Environment.UserName}";
+        }
+
+
+        public void IchNICHT() {
+
         }
     }
 }

@@ -34,7 +34,7 @@ namespace SignalARRR.Server {
         }
 
         public Task SendClientAsync(string clientId, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
-            return SendClientMessageAsync(clientId, MethodNames.SendMessageToClient, serverRequestMessage, cancellationToken);
+            return SendClientMessageAsync(clientId, MethodNames.InvokeServerMessage, serverRequestMessage, cancellationToken);
         }
 
         public async Task<string> Challenge(string clientId) {

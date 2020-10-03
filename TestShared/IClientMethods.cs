@@ -14,5 +14,7 @@ namespace TestShared {
 
         //Task<T> InvokeAsync<T>(string command, Dictionary<string, object> variables = null);
         T Invoke<T>(string command, Dictionary<string, object> variables = null);
+
+        void Nix();
     }
 }
