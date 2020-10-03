@@ -23,6 +23,7 @@ using Reflectensions.JsonConverters;
 using SignalARRR.Attributes;
 using SignalARRR.Client;
 using SignalARRR.Client.ExtensionMethods;
+using SignalARRR.CodeGenerator;
 using SignalARRR.Constants;
 
 namespace SignalARRR {
@@ -62,7 +63,7 @@ namespace SignalARRR {
         }
 
         public T GetTypedMethods<T>(string nameSpace = null) {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(this, nameSpace);
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ClientClassCreatorHelper(this), nameSpace);
             return instance;
         }
 
@@ -135,6 +136,15 @@ namespace SignalARRR {
             ServerRequestHandlers.TryAdd(methodName, handler);
         }
 
+        public async Task<object> InvokeCoreAsync(ClientRequestMessage message, Type returnType, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(AccessTokenProvider);
+            return await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { message }, cancellationToken);
+        }
+
+        public async Task InvokeCoreAsync(ClientRequestMessage message, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(AccessTokenProvider);
+            await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageOnServer, new object[] { message }, cancellationToken);
+        }
 
         public async Task<object> InvokeCoreAsync(string methodName, Type returnType, object[] args, CancellationToken cancellationToken = default) {
             var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
@@ -146,15 +156,30 @@ namespace SignalARRR {
             await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageOnServer, new object[] { msg }, cancellationToken);
         }
 
+        public async Task<TResult> InvokeCoreAsync<TResult>(ClientRequestMessage message, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(AccessTokenProvider);
+            var resultMsg = await HubConnection.InvokeCoreAsync<TResult>(MethodNames.InvokeMessageResultOnServer, new object[] { message }, cancellationToken);
+            return resultMsg;
+        }
         public async Task<TResult> InvokeCoreAsync<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
             var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
             var resultMsg = await HubConnection.InvokeCoreAsync<TResult>(MethodNames.InvokeMessageResultOnServer, new object[] { msg }, cancellationToken);
             return resultMsg;
         }
 
+        public Task SendCoreAsync(ClientRequestMessage message, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(AccessTokenProvider);
+            return HubConnection.SendCoreAsync(MethodNames.SendMessageToServer, new object[] { message }, cancellationToken);
+        }
+
         public Task SendCoreAsync(string methodName, object[] args, CancellationToken cancellationToken = default) {
             var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
             return HubConnection.SendCoreAsync(MethodNames.SendMessageToServer, new object[] { msg }, cancellationToken);
+        }
+
+        public IAsyncEnumerable<TResult> StreamAsyncCore<TResult>(ClientRequestMessage message, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(AccessTokenProvider);
+            return HubConnection.StreamAsyncCore<TResult>(MethodNames.StreamMessageFromServer, new object[] { message }, cancellationToken);
         }
 
         public IAsyncEnumerable<TResult> StreamAsyncCore<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {

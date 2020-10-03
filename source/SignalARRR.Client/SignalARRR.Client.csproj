@@ -31,6 +31,7 @@
 
 
   <ItemGroup>
+    <ProjectReference Include="..\..\SignalARRR.CodeGenerator\SignalARRR.CodeGenerator.csproj" />
     <ProjectReference Include="..\SignalARRR.Common\SignalARRR.Common.csproj" />
   </ItemGroup>
 

@@ -15,13 +15,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Reflectensions.ExtensionMethods;
 
 namespace SignalARRR.Server {
-    internal class ClassCreator {
+    internal class ClassCreator2 {
         private static ConcurrentDictionary<Type, Type> generatedTypes { get; } = new ConcurrentDictionary<Type, Type>();
 
         private Type FromType { get; }
 
 
-        private ClassCreator(Type fromType) {
+        private ClassCreator2(Type fromType) {
             FromType = fromType;
         }
 
@@ -111,8 +111,7 @@ namespace SignalARRR.Server {
                 .Select(p => SyntaxFactory.Parameter(SyntaxFactory.Identifier(p.Name))
                 .WithType(AsTypeSyntax(p.ParameterType)));
 
-            var modifiers = (isTaskOfT || isTask) ? SyntaxKind.PublicKeyword | SyntaxKind.AsyncKeyword : SyntaxKind.PublicKeyword;
-
+           
 
             var methodGenericArgument = "";
             if (genericArguments.Any()) {
@@ -167,7 +166,7 @@ namespace SignalARRR.Server {
             var nameSpaceParameter = SyntaxFactory.Parameter(SyntaxFactory.Identifier("nameSpace"))
                 .WithType(AsTypeSyntax(typeof(string)));
             var helperParameter = SyntaxFactory.Parameter(SyntaxFactory.Identifier("helper"))
-                .WithType(AsTypeSyntax(typeof(ClassCreatorHelper)));
+                .WithType(AsTypeSyntax(typeof(ClassCreatorHelper2)));
 
             var body = "_clientcontext = clientcontext;_nameSpace = nameSpace;_helper = helper;";
 
@@ -203,7 +202,7 @@ namespace SignalARRR.Server {
                 .AddVariables(SyntaxFactory.VariableDeclarator("_clientcontext"));
             var nameSpaceVariable = SyntaxFactory.VariableDeclaration(AsTypeSyntax(typeof(string)))
                 .AddVariables(SyntaxFactory.VariableDeclarator("_nameSpace"));
-            var helperVariable = SyntaxFactory.VariableDeclaration(AsTypeSyntax(typeof(ClassCreatorHelper)))
+            var helperVariable = SyntaxFactory.VariableDeclaration(AsTypeSyntax(typeof(ClassCreatorHelper2)))
                 .AddVariables(SyntaxFactory.VariableDeclarator("_helper"));
 
             var clientcontextFieldDeclaration = SyntaxFactory.FieldDeclaration(clientcontextVariable)
@@ -319,7 +318,7 @@ namespace SignalARRR.Server {
         }
 
         public static Type CreateTypeFromInterface(Type type) {
-            return new ClassCreator(type).Build();
+            return new ClassCreator2(type).Build();
         }
 
         public static T CreateInstanceFromInterface<T>(params object[] args) {
@@ -327,14 +326,14 @@ namespace SignalARRR.Server {
             var t = CreateTypeFromInterface<T>();
 
             var nargs = args.ToList();
-            nargs.Add(new ClassCreatorHelper());
+            nargs.Add(new ClassCreatorHelper2());
 
             var instance = (T)Activator.CreateInstance(t, nargs.ToArray());
             return instance;
         }
     }
 
-    public class ClassCreatorHelper {
+    public class ClassCreatorHelper2 {
 
         public ChannelReader<T> ToChannelReader<T>(IAsyncEnumerable<T> asyncEnumerable, CancellationToken token = default) {
 

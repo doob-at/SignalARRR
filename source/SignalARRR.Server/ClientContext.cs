@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Reflectensions.HelperClasses;
+using SignalARRR.CodeGenerator;
 using SignalARRR.Server.ExtensionMethods;
 
 namespace SignalARRR.Server {
@@ -127,7 +128,7 @@ namespace SignalARRR.Server {
 
 
         public T GetTypedMethods<T>(string nameSpace = null) {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(this, nameSpace);
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorHelper(this), nameSpace);
             return instance;
         }
     }

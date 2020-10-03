@@ -40,6 +40,7 @@ namespace TestClient {
                 //optionsBuilder => optionsBuilder.UseHttpResponse()
                 );
 
+            
 
             connection.RegisterClientMethods<PS>();
 

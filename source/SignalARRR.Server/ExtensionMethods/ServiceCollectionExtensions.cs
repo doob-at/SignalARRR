@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Reflectensions.ExtensionMethods;
 using SignalARRR.Attributes;
+using SignalARRR.CodeGenerator;
 
 namespace SignalARRR.Server.ExtensionMethods {
     public static class ServiceCollectionExtensions {
