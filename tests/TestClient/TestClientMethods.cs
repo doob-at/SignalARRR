@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SignalARRR;
@@ -13,6 +14,7 @@ namespace TestClient {
     public class TestClientMethods: ITestClientMethods {
 
 
+        public static int count = 0;
         public Task<DateTime> GetDate() {
 
             var dt = DateTime.Now;
@@ -37,12 +39,39 @@ namespace TestClient {
         }
 
         public T Invoke<T>(string command, Dictionary<string, object> variables = null) {
+
+
+            if (count % 2 != 0) {
+                throw new Exception("Count is odd, sorry...");
+            }
+
+            count++;
+
             Console.WriteLine(typeof(T));
             return default;
         }
 
         public void Nix() {
-            
+            throw new Exception("NIX Exception");
+        }
+
+        public List<string> GetContent(int count = 10) {
+
+
+            Task.Delay(TimeSpan.FromSeconds(2)).GetAwaiter().GetResult();
+
+            var chars = Enumerable.Range(0, char.MaxValue + 1)
+                .Select(i => (char)i)
+                .Where(c => !char.IsControl(c))
+                .ToArray();
+
+            var l = new List<string>();
+
+            for (int i = 0; i < count; i++) {
+                l.Add(string.Join("", chars));
+            }
+
+            return l;
         }
 
         public string GetName() {

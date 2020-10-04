@@ -23,6 +23,17 @@ namespace SignalARRR.Server.ExtensionMethods {
 
         }
 
+        public static async Task Proxy(this ClientContext clientContext, string method, object[] arguments, HttpContext httpContext) {
+
+            using var serviceProviderScope = clientContext.ServiceProvider.CreateScope();
+
+            var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
+            var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
+            var msg = new ServerRequestMessage(method, arguments);
+            await harrrContext.ProxyClientAsync(clientContext.Id, msg, httpContext);
+            
+        }
+
         //public static async Task<string> Challenge(this ClientContext clientContext) {
 
 

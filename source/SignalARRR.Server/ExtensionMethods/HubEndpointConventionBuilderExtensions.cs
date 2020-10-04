@@ -11,6 +11,10 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Reflectensions;
+using Reflectensions.ExtensionMethods;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace SignalARRR.Server.ExtensionMethods {
     public static class HubEndpointConventionBuilderExtensions {
@@ -19,14 +23,7 @@ namespace SignalARRR.Server.ExtensionMethods {
             this IEndpointRouteBuilder endpoints, string pattern) where THub : HARRR {
 
             var ret = endpoints.MapHub<THub>(pattern);
-            endpoints.MapPost($"{pattern}/response", async context => {
-                context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 100_000_000;
-                var requestManager = context.RequestServices.GetRequiredService<ServerRequestManager>();
-                var json = await context.GetRawBodyStringAsync(Encoding.UTF8);
-                var msg = Converter.Json.ToObject<ClientResponseMessage>(json);
-                requestManager.CompleteRequest(msg);
-                await context.Ok();
-            });
+            endpoints.MapPost($"{pattern}/response/{{id}}", async context => await InvokeResponse(context));
             return ret;
 
         }
@@ -36,28 +33,61 @@ namespace SignalARRR.Server.ExtensionMethods {
             Action<HttpConnectionDispatcherOptions> configureOptions) where THub : HARRR {
 
             var ret = endpoints.MapHub<THub>(pattern, configureOptions);
-            endpoints.MapPost($"{pattern}/response", async context => {
-                context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 100_000_000;
-                var requestManager = context.RequestServices.GetRequiredService<ServerRequestManager>();
-                var json = await context.GetRawBodyStringAsync(Encoding.UTF8);
-                var msg = Converter.Json.ToObject<ClientResponseMessage>(json);
-                requestManager.CompleteRequest(msg);
-                await context.Ok();
-            });
+            endpoints.MapPost($"{pattern}/response/{{id}}", async context => await InvokeResponse(context));
             return ret;
 
         }
-        
-        //public static TBuilder WithResponseController<TBuilder>(this TBuilder builder, string pattern = null) where TBuilder : IEndpointConventionBuilder {
-        //    if (builder == null) {
-        //        throw new ArgumentNullException(nameof(builder));
-        //    }
-            
-        //    builder.Add(endpointBuilder => {
-                
-        //        endpointBuilder.Metadata.Add(new HostAttribute(hosts));
-        //    });
-        //    return builder;
-        //}
+
+
+        public static async Task InvokeResponse(HttpContext context) {
+
+            context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 100_000_000;
+            var requestManager = context.RequestServices.GetRequiredService<ServerRequestManager>();
+            var id = context.Request.RouteValues["id"].ToString().ToGuid();
+            var error = context.Request.Query["error"].ToString().ToNull();
+            var responseType = requestManager.GetResponseType(id);
+            switch (responseType) {
+                case RequestType.Invalid: {
+                        await context.BadRequest();
+                        return;
+                    }
+                case RequestType.Default: {
+
+                        JToken payload = null;
+                        if (error == null) {
+                            if (context.Request.ContentLength != null && context.Request.ContentLength > 0) {
+                                var json = await context.GetRawBodyStringAsync(Encoding.UTF8);
+                                payload = Json.Converter.ToJToken(json);
+                            }
+                        }
+                        requestManager.CompleteRequest(id, payload, error);
+                        await context.Ok();
+                        return;
+                    }
+                case RequestType.Proxy: {
+
+                        var httpContext = requestManager.GetHttpContext(id);
+
+                        if (error != null) {
+                            await httpContext.BadRequest(error);
+                        } else {
+                            if (context.Request.ContentLength != null && context.Request.ContentLength > 0) {
+                                await context.Request.Body
+                                    .CopyToAsync(httpContext.Response.Body, 131072, httpContext.RequestAborted)
+                                    .ConfigureAwait(false);
+                                await httpContext.Response.Body.FlushAsync(httpContext.RequestAborted)
+                                    .ConfigureAwait(false);
+                            }
+
+                        }
+                        await context.Ok();
+                        requestManager.CompleteProxyRequest(id);
+                        return;
+                    }
+            }
+
+        }
+
+
     }
 }

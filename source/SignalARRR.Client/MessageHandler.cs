@@ -16,6 +16,7 @@ using Reflectensions.Helper;
 using SignalARRR.Attributes;
 using SignalARRR.Client.ExtensionMethods;
 using SignalARRR.Constants;
+using SignalARRR.Helper;
 
 namespace SignalARRR.Client {
     public class MessageHandler {
@@ -38,37 +39,39 @@ namespace SignalARRR.Client {
 
         public async Task ChallengeAuthentication(ServerRequestMessage message) {
 
-            var msg = new ClientResponseMessage(message.Id);
-            msg.PayLoad = await AccessTokenProvider();
+            string payload = null;
+            string error = null;
+            try {
+                payload = await AccessTokenProvider();
+            } catch (Exception e) {
+                error = e.GetBaseException().Message;
+            }
+            
 
-            await HARRRConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
+            await HARRRConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { message.Id, payload, error });
 
         }
 
         public async Task InvokeServerRequest(ServerRequestMessage message) {
-
-            var msg = new ClientResponseMessage(message.Id);
-
+            
             try {
                 message = PrepareServerRequestMessage(message);
-
-                msg.PayLoad = await InvokeMethodAsync(message);
-
-                await SendResponse(msg);
+                var payload = await InvokeMethodAsync(message);
+                await SendResponse(message.Id, payload, null);
             } catch (Exception e) {
-
-                msg.ErrorMessage = e.GetBaseException().Message;
-                await HARRRConnection.AsSignalRHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
+                await HARRRConnection.AsSignalRHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { message.Id, null, e.GetBaseException().Message });
             }
 
         }
 
         public async Task InvokeServerMessage(ServerRequestMessage message) {
 
-            message = PrepareServerRequestMessage(message);
-
-            await InvokeMethodAsync(message);
-
+            try {
+                message = PrepareServerRequestMessage(message);
+                await InvokeMethodAsync(message);
+            } catch {
+                // ignored
+            }
         }
 
 
@@ -120,15 +123,21 @@ namespace SignalARRR.Client {
         
 
 
-        private async Task SendResponse(ClientResponseMessage responseMessage) {
+        private async Task SendResponse(Guid id, object payload, string error) {
 
             if (Options.HttpResponse) {
-                var payload = Json.Converter.ToJson(responseMessage);
-                var url = HARRRConnection.AsSignalRHubConnection().GetResponseUri();
+                var url = HARRRConnection.AsSignalRHubConnection().GetResponseUri(id, error);
                 var httpClient = new HttpClient();
-                await httpClient.PostAsync(url, new StringContent(payload));
+
+                if (!string.IsNullOrEmpty(error)) {
+                    await httpClient.PostAsync(url, null);
+                } else {
+                    var jsonPayload = Json.Converter.ToJson(payload);
+                    await httpClient.PostAsync(url, new StringContent(jsonPayload));
+                }
+                
             } else {
-                await HARRRConnection.AsSignalRHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { responseMessage });
+                await HARRRConnection.AsSignalRHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { id, payload, error });
             }
         }
 
@@ -153,7 +162,6 @@ namespace SignalARRR.Client {
 
                 var arrType = serverRequestMessage.GenericArguments.Select(TypeHelper.FindType).ToList();
                 methodInfo = methodInfo.MakeGenericMethod(arrType.ToArray());
-                return await InvokeHelper.InvokeMethodAsync<object>(instance, methodInfo, parameters);
             }
 
             if (methodInfo.ReturnType == typeof(void) || methodInfo.ReturnType == typeof(Task)) {

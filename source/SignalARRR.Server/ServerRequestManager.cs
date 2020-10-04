@@ -1,43 +1,102 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 
 namespace SignalARRR.Server {
-    public class ServerRequestManager {
+    internal class ServerRequestManager {
 
 
-        private readonly ConcurrentDictionary<Guid, TaskCompletionSource<ClientResponseMessage>> _pendingMethodCalls = new ConcurrentDictionary<Guid, TaskCompletionSource<ClientResponseMessage>>();
+        private readonly ConcurrentDictionary<Guid, RequestContext> _pendingMethodCalls = new ConcurrentDictionary<Guid, RequestContext>();
 
 
-        //public TaskCompletionSource<ClientResponseMessage> AddorGetRequest(Guid id) {
+        public TaskCompletionSource<JToken> AddRequest(Guid id) {
 
-        //    return _pendingMethodCalls.GetOrAdd(id, guid => new TaskCompletionSource<ClientResponseMessage>());
             
-        //}
+            var requestContext = new RequestContext();
+            requestContext.RequestType = RequestType.Default;
+            requestContext.TaskCompletionSource = new TaskCompletionSource<JToken>();
+            if (_pendingMethodCalls.TryAdd(id, requestContext)) {
+                return requestContext.TaskCompletionSource;
+            }
 
-        public TaskCompletionSource<ClientResponseMessage> AddRequest(Guid id) {
+            throw new Exception("Can't add Request to Manager");
+        }
 
-            var methodCallCompletionSource = new TaskCompletionSource<ClientResponseMessage>();
-            if (_pendingMethodCalls.TryAdd(id, methodCallCompletionSource)) {
-                return methodCallCompletionSource;
+        public TaskCompletionSource<JToken> AddProxyRequest(Guid id, HttpContext httpContext) {
+
+            var requestContext = new RequestContext();
+            requestContext.RequestType = RequestType.Proxy;
+            requestContext.TaskCompletionSource = new TaskCompletionSource<JToken>();
+            requestContext.HttpContext = httpContext;
+            if (_pendingMethodCalls.TryAdd(id, requestContext)) {
+                return requestContext.TaskCompletionSource;
             }
 
             throw new Exception("Can't add Request to Manager");
         }
 
 
-        public void CompleteRequest(ClientResponseMessage clientResponseMessage) {
+        public void CompleteRequest(Guid id, JToken payload, string error) {
 
-            if (_pendingMethodCalls.TryRemove(clientResponseMessage.Id, out var methodCallCompletionSource)) {
-                methodCallCompletionSource.SetResult(clientResponseMessage);
+            
+            if (_pendingMethodCalls.TryRemove(id, out var requestContext)) {
+
+                if (!string.IsNullOrEmpty(error)) {
+                    requestContext.TaskCompletionSource.SetException(new Exception(error));
+                } else {
+                    requestContext.TaskCompletionSource.SetResult(payload);
+                }
+                
+            }
+        }
+
+        public void CompleteProxyRequest(Guid id) {
+
+            if (_pendingMethodCalls.TryRemove(id, out var requestContext)) {
+                requestContext.TaskCompletionSource.SetResult(null);
             }
         }
 
         public void CancelRequest(Guid id) {
-            if (_pendingMethodCalls.TryRemove(id, out var methodCallCompletionSource)) {
-                methodCallCompletionSource.SetCanceled();
+            if (_pendingMethodCalls.TryRemove(id, out var requestContext)) {
+                requestContext.TaskCompletionSource.SetCanceled();
             }
         }
 
+        public RequestType GetResponseType(Guid id) {
+            if (_pendingMethodCalls.TryGetValue(id, out var requestContext)) {
+                return requestContext.RequestType;
+            }
+
+            return RequestType.Invalid;
+
+        }
+
+        public HttpContext GetHttpContext(Guid id) {
+            if (_pendingMethodCalls.TryGetValue(id, out var requestContext)) {
+                return requestContext.HttpContext;
+            }
+
+            return null;
+        }
+    }
+
+    public class RequestContext {
+        public RequestType RequestType { get; set; }
+
+        public HttpContext HttpContext { get; set; }
+
+        public TaskCompletionSource<JToken> TaskCompletionSource { get; set; }
+    }
+
+    public enum RequestType {
+        
+        Invalid,
+        Default,
+        Proxy
     }
 }

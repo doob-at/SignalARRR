@@ -16,5 +16,7 @@ namespace TestShared {
         T Invoke<T>(string command, Dictionary<string, object> variables = null);
 
         void Nix();
+
+        List<string> GetContent(int count);
     }
 }

@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Reflectensions;
 using Reflectensions.ExtensionMethods;
 using SignalARRR.Constants;
 
@@ -30,6 +34,13 @@ namespace SignalARRR.Server {
 
 
             return InvokeClientMessageAsync<TResult>(clientId, MethodNames.InvokeServerRequest, serverRequestMessage, cancellationToken);
+
+        }
+
+        public Task ProxyClientAsync(string clientId, ServerRequestMessage serverRequestMessage, HttpContext httpContext) {
+
+
+            return ProxyClientMessageAsync(clientId, MethodNames.InvokeServerRequest, serverRequestMessage, httpContext);
 
         }
 
@@ -67,32 +78,39 @@ namespace SignalARRR.Server {
             });
 
 
-            var res = await m.Task;
-
-            if (!String.IsNullOrWhiteSpace(res.ErrorMessage)) {
-                throw new Exception(res.ErrorMessage);
-            }
-
-            if (!String.IsNullOrWhiteSpace(res.ErrorMessage)) {
-                throw new Exception(res.ErrorMessage);
-            }
-
-            if (res.PayLoad is JToken jToken) {
-                return Converter.Json.ToObject<TResult>(jToken);
-            }
-
-            //if (res.PayLoad is JArray jArray) {
-            //    return Converter.Json.ToObject<TResult>(jArray);
-            //}
-
-            if (res.PayLoad.TryTo<TResult>(out var value)) {
-                return value;
-            }
-
-            
-            return default;
+            var jToken = await m.Task;
+           
+            return Json.Converter.ToObject<TResult>(jToken);
 
         }
+
+        private async Task ProxyClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, HttpContext httpContext) {
+
+
+            var m = ServerRequestManager.AddProxyRequest(serverRequestMessage.Id, httpContext);
+            await HubContext.Clients.Client(clientId).SendCoreAsync(methodName, new[] { serverRequestMessage }, httpContext.RequestAborted);
+
+
+            await Task.Run(() => {
+                try {
+                    Task.WaitAny(new Task[] { m.Task }, httpContext.RequestAborted);
+                } catch (Exception) {
+                    ServerRequestManager.CancelRequest(serverRequestMessage.Id);
+                    throw;
+                }
+            });
+
+            //await m.Task;
+        }
+
+
+        //private TResult Deserialize<TResult>(Stream s) {
+        //    using (StreamReader reader = new StreamReader(s))
+        //    using (JsonTextReader jsonReader = new JsonTextReader(reader)) {
+        //        JsonSerializer ser = new JsonSerializer();
+        //        return ser.Deserialize<TResult>(jsonReader);
+        //    }
+        //}
 
         private async Task SendClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
 

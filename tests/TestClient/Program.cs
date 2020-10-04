@@ -36,8 +36,8 @@ namespace TestClient {
                     .ConfigureLogging(log => {
                         log.AddConsole();
                         log.SetMinimumLevel(LogLevel.Error);
-                    })
-                //optionsBuilder => optionsBuilder.UseHttpResponse()
+                    }),
+                optionsBuilder => optionsBuilder.UseHttpResponse()
                 );
 
             

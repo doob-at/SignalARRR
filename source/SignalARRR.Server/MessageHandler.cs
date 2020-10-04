@@ -2,17 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Policy;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,7 +13,7 @@ using Newtonsoft.Json.Linq;
 using Reflectensions.ExtensionMethods;
 using Reflectensions.Helper;
 using SignalARRR.Exceptions;
-using SignalARRR.Server.ExtensionMethods;
+using SignalARRR.Helper;
 using ObservableExtensions = SignalARRR.Server.ExtensionMethods.ObservableExtensions;
 
 namespace SignalARRR.Server {
@@ -115,6 +108,12 @@ namespace SignalARRR.Server {
             var parameters = BuildExecuteMethodParameters(methodInfo, clientMessage.Arguments);
 
             var instance = BuildInvokeTypeInstance(methodInfo);
+
+            if (clientMessage.GenericArguments?.Any() == true) {
+
+                var arrType = clientMessage.GenericArguments.Select(TypeHelper.FindType).ToList();
+                methodInfo = methodInfo.MakeGenericMethod(arrType.ToArray());
+            }
 
             if (methodInfo.ReturnType == typeof(void) || methodInfo.ReturnType == typeof(Task)) {
                 await InvokeHelper.InvokeVoidMethodAsync(instance, methodInfo, parameters);

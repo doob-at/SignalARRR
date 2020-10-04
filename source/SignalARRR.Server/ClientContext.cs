@@ -131,6 +131,16 @@ namespace SignalARRR.Server {
             var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorHelper(this), nameSpace);
             return instance;
         }
+
+        public void ProxyToHttpContext<T>( HttpContext httpContext, string nameSpace, Action<T> action) {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorProxyHelper(this, httpContext), nameSpace);
+            action(instance);
+        }
+
+        public void ProxyToHttpContext<T>(HttpContext httpContext, Action<T> action) {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorProxyHelper(this, httpContext), null);
+            action(instance);
+        }
     }
 
 

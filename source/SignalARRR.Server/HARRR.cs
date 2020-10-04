@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Newtonsoft.Json.Linq;
+using SignalARRR.Server.ExtensionMethods;
 
 namespace SignalARRR.Server {
     public abstract class HARRR : Hub {
@@ -46,7 +48,7 @@ namespace SignalARRR.Server {
         public override async Task OnConnectedAsync() {
             try {
 
-                
+
                 var cl = ClientManager.Register(this, Context);
 
                 await base.OnConnectedAsync().ConfigureAwait(false);
@@ -100,18 +102,18 @@ namespace SignalARRR.Server {
                 var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider);
 
 
-                
+
 
                 return await strHelper.InvokeMethodAsync(clientMessage);
             } catch (Exception e) {
 
-               throw new HARRRException(e);
-               
+                throw new HARRRException(e);
+
             }
 
         }
 
-       
+
         public Task SendMessage(ClientRequestMessage clientMessage) {
 
             try {
@@ -140,16 +142,32 @@ namespace SignalARRR.Server {
             }
         }
 
-        public void ReplyServerRequest(ClientResponseMessage clientResponseMessage) {
+        public async Task ReplyServerRequest(Guid id, JToken payload, string error) {
 
-            ServerRequestManager.CompleteRequest(clientResponseMessage);
+            var responseType = ServerRequestManager.GetResponseType(id);
+
+            switch (responseType) {
+                case RequestType.Default: {
+                        ServerRequestManager.CompleteRequest(id, payload, error);
+                        return;
+                    }
+                case RequestType.Proxy: {
+                        var httpContext = ServerRequestManager.GetHttpContext(id);
+
+                        if (error != null) {
+                            await httpContext.BadRequest(error);
+                        } else {
+                            await httpContext.Ok(payload);
+                        }
+                        ServerRequestManager.CompleteProxyRequest(id);
+                        return;
+                    }
+            }
+
+
         }
 
 
-        //public async Task<bool> Authenticate(string authdata) {
-        //    ClientContext.SetAuthData(authdata);
-        //    return await ClientContext.TryAuthenticate();
-        //}
     }
 
 

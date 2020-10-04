@@ -13,12 +13,6 @@ namespace SignalARRR.Client {
 
         private readonly Dictionary<string, MethodCallInfo> _collection = new Dictionary<string, MethodCallInfo>();
 
-        //public void AddMethod(string name, MethodInfo methodInfo, object instance = null) {
-        //    if (!_collection.ContainsKey(name)) {
-        //        var mci = new MethodCallInfo(methodInfo, instance);
-        //        _collection.Add(name, mci);
-        //    }
-        //}
         public void AddMethod(string name, MethodInfo methodInfo) {
             if (!_collection.ContainsKey(name)) {
                 var mci = new MethodCallInfo(methodInfo);
