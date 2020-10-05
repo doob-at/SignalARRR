@@ -32,7 +32,8 @@ namespace TestServer
 
             //services.AddAuthentication("AccessToken").AddTestTokenValidation();
 
-            services.AddSignalR().AddNewtonsoftJsonProtocol();
+            services.AddSignalR().AddNewtonsoftJsonProtocol()
+                .AddMessagePackProtocol();
 
             services.AddSignalARRR(builder => builder
                 .PreBuiltClientMethods<ITestClientMethods>());

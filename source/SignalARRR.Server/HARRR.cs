@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json.Linq;
+using Reflectensions;
 using SignalARRR.Server.ExtensionMethods;
 
 namespace SignalARRR.Server {
@@ -142,13 +143,14 @@ namespace SignalARRR.Server {
             }
         }
 
-        public async Task ReplyServerRequest(Guid id, JToken payload, string error) {
+        public async Task ReplyServerRequest(Guid id, object payload, string error) {
 
             var responseType = ServerRequestManager.GetResponseType(id);
-
+            var jtoken = Json.Converter.ToJToken(payload);
             switch (responseType) {
                 case RequestType.Default: {
-                        ServerRequestManager.CompleteRequest(id, payload, error);
+                        
+                        ServerRequestManager.CompleteRequest(id, jtoken, error);
                         return;
                     }
                 case RequestType.Proxy: {
@@ -157,7 +159,7 @@ namespace SignalARRR.Server {
                         if (error != null) {
                             await httpContext.BadRequest(error);
                         } else {
-                            await httpContext.Ok(payload);
+                            await httpContext.Ok(jtoken);
                         }
                         ServerRequestManager.CompleteProxyRequest(id);
                         return;

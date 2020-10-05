@@ -32,7 +32,7 @@ namespace TestClient {
                         //    return Task.FromResult(dt);
                         //};
                     })
-                   
+                    .AddMessagePackProtocol()
                     .ConfigureLogging(log => {
                         log.AddConsole();
                         log.SetMinimumLevel(LogLevel.Error);

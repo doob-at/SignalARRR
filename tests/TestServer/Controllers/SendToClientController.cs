@@ -90,6 +90,8 @@ namespace TestServer.Controllers {
             if (cl1 == null)
                 throw new Exception("No client found!");
 
+
+
             var res = cl1.GetTypedMethods<ITestClientMethods>().CreateObject(className, properties);
             //InvokeScsmProxyClient(methods => methods.CreateObject(className, properties));
             return Ok(res);

@@ -56,6 +56,7 @@ namespace SignalARRR.Client {
             
             try {
                 message = PrepareServerRequestMessage(message);
+                throw new Exception("Exception is thrown");
                 var payload = await InvokeMethodAsync(message);
                 await SendResponse(message.Id, payload, null);
             } catch (Exception e) {
@@ -212,8 +213,12 @@ namespace SignalARRR.Client {
 
 
         private ServerRequestMessage PrepareServerRequestMessage(ServerRequestMessage message) {
-            if (!UsesNewtonsoftJson && !UsesMessagePack) {
+
+            if (!UsesNewtonsoftJson && !UsesMessagePack) { // System.Text.Json is used
                 var requestJson = JsonSerializer.Serialize(message);
+                message = Json.Converter.ToObject<ServerRequestMessage>(requestJson);
+            } else if (!UsesNewtonsoftJson) {// Messagepack is used
+                var requestJson = Json.Converter.ToJson(message);
                 message = Json.Converter.ToObject<ServerRequestMessage>(requestJson);
             }
 
