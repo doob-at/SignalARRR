@@ -18,5 +18,9 @@ namespace TestShared {
         void Nix();
 
         List<string> GetContent(int count);
+
+        bool CreateObject(string className, Dictionary<string, object> properties);
+
+        bool CreateObjectFromTemplate(string templateName, Dictionary<string, object> properties);
     }
 }

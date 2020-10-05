@@ -146,6 +146,9 @@ namespace SignalARRR.Client {
 
 
             var methodCallInfo = MethodsCollection.GetMethod(serverRequestMessage.Method);
+            if(methodCallInfo == null)
+                throw new Exception($"Method '{serverRequestMessage.Method}' not found!");
+
             var methodInfo = methodCallInfo.MethodInfo;
             if (methodCallInfo == null || methodInfo == null) {
                 var errorMsg = $"Method '{serverRequestMessage.Method}' not found";

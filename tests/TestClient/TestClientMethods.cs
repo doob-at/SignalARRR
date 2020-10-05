@@ -74,6 +74,16 @@ namespace TestClient {
             return l;
         }
 
+        public bool CreateObject(string className, Dictionary<string, object> properties) {
+
+            return true;
+
+        }
+
+        public bool CreateObjectFromTemplate(string templateName, Dictionary<string, object> properties) {
+            return true;
+        }
+
         public string GetName() {
             return $"{Environment.MachineName}\\{Environment.UserName}";
         }

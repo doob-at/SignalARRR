@@ -81,5 +81,19 @@ namespace TestServer.Controllers {
             return Ok(res);
         }
 
+
+        [HttpPost("{className}")]
+        public async Task<IActionResult> CreateObject(string className, [FromBody] Dictionary<string, object> properties) {
+
+            var cl1 = ClientManager.GetAllClients().FirstOrDefault();
+
+            if (cl1 == null)
+                throw new Exception("No client found!");
+
+            var res = cl1.GetTypedMethods<ITestClientMethods>().CreateObject(className, properties);
+            //InvokeScsmProxyClient(methods => methods.CreateObject(className, properties));
+            return Ok(res);
+        }
+
     }
 }

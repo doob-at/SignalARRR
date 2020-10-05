@@ -28,7 +28,7 @@ namespace SignalARRR.CodeGenerator {
 
         private static MemberDeclarationSyntax CreateConstructor(string className) {
 
-           
+
             var nameSpaceParameter = SyntaxFactory.Parameter(SyntaxFactory.Identifier("nameSpace"))
                 .WithType(typeof(string).AsTypeSyntax());
             var helperParameter = SyntaxFactory.Parameter(SyntaxFactory.Identifier("helper"))
@@ -132,12 +132,12 @@ namespace SignalARRR.CodeGenerator {
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                 .AddBaseListTypes(baseType);
 
-           
+
             var nameSpaceVariable = SyntaxFactory.VariableDeclaration(typeof(string).AsTypeSyntax())
                 .AddVariables(SyntaxFactory.VariableDeclarator("_nameSpace"));
             var helperVariable = SyntaxFactory.VariableDeclaration(typeof(ClassCreatorHelper).AsTypeSyntax())
                 .AddVariables(SyntaxFactory.VariableDeclarator("_helper"));
-            
+
             var nameSpaceFieldDeclaration = SyntaxFactory.FieldDeclaration(nameSpaceVariable)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
 
@@ -156,7 +156,7 @@ namespace SignalARRR.CodeGenerator {
             var @namespace = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(namespaceName)).NormalizeWhitespace();
             @namespace = @namespace.AddUsings(
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System"))
-                //SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic"))
+            //SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic"))
             );
             @namespace = @namespace.AddMembers(classDeclaration);
 
@@ -217,9 +217,8 @@ namespace SignalARRR.CodeGenerator {
             var t = CreateTypeFromInterface<T>();
 
             var nargs = new List<object>();
-            if (@namespace != null) {
-                nargs.Add(@namespace);
-            }
+
+            nargs.Add(@namespace);
             nargs.Add(classCreatorHelper);
 
             var instance = (T)Activator.CreateInstance(t, nargs.ToArray());
