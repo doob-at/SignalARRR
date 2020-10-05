@@ -41,11 +41,7 @@ namespace TestClient {
         public T Invoke<T>(string command, Dictionary<string, object> variables = null) {
 
 
-            if (count % 2 != 0) {
-                throw new Exception("Count is odd, sorry...");
-            }
-
-            count++;
+           
 
             Console.WriteLine(typeof(T));
             return default;

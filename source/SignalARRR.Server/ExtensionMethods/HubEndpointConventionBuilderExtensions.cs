@@ -72,6 +72,7 @@ namespace SignalARRR.Server.ExtensionMethods {
                             await httpContext.BadRequest(error);
                         } else {
                             if (context.Request.ContentLength != null && context.Request.ContentLength > 0) {
+                                httpContext.Response.Headers["Content-Type"] = context.Request.Headers["Content-Type"];
                                 await context.Request.Body
                                     .CopyToAsync(httpContext.Response.Body, 131072, httpContext.RequestAborted)
                                     .ConfigureAwait(false);

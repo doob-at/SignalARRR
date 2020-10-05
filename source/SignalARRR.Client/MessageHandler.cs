@@ -133,7 +133,7 @@ namespace SignalARRR.Client {
                     await httpClient.PostAsync(url, null);
                 } else {
                     var jsonPayload = Json.Converter.ToJson(payload);
-                    await httpClient.PostAsync(url, new StringContent(jsonPayload));
+                    await httpClient.PostAsync(url, new StringContent(jsonPayload, Encoding.UTF8, "application/json"));
                 }
                 
             } else {
