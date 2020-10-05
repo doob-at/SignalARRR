@@ -56,7 +56,6 @@ namespace SignalARRR.Client {
             
             try {
                 message = PrepareServerRequestMessage(message);
-                throw new Exception("Exception is thrown");
                 var payload = await InvokeMethodAsync(message);
                 await SendResponse(message.Id, payload, null);
             } catch (Exception e) {
