@@ -1,4 +1,4 @@
-﻿namespace SignalARRR
+﻿namespace SignalARRR.Client
 {
     public class HARRRConnectionOptions {
 

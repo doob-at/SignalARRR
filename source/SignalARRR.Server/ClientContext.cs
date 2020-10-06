@@ -34,6 +34,7 @@ namespace SignalARRR.Server {
 
         internal IServiceProvider ServiceProvider { get; }
 
+        public Uri ConnectedTo { get; }
         //private string AuthData { get; set; }
         //private IAuthenticator Authenticator { get; }
 
@@ -46,7 +47,9 @@ namespace SignalARRR.Server {
             HARRRType = hub.GetType();
             
             RemoteIp = hubCallerContext.GetHttpContext().Connection.RemoteIpAddress;
-            
+            var connectedToBuilder = new UriBuilder(hubCallerContext.GetHttpContext().Request.GetDisplayUrl());
+            connectedToBuilder.Query = null;
+            ConnectedTo = connectedToBuilder.Uri;
 
             foreach (var (key, value) in hubCallerContext.GetHttpContext().Request.Headers)
             {

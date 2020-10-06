@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.cspr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestShared", "TestShared\TestShared.csproj", "{DBB2DAED-D520-44EE-9A44-002220297B42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalARRR.CodeGenerator", "SignalARRR.CodeGenerator\SignalARRR.CodeGenerator.csproj", "{C4E06895-A4D0-467C-B8C7-62EA2D6E2B91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalARRR.CodeGenerator", "SignalARRR.CodeGenerator\SignalARRR.CodeGenerator.csproj", "{C4E06895-A4D0-467C-B8C7-62EA2D6E2B91}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalARRR.CustomTypes", "SignalARRR.CustomTypes\SignalARRR.CustomTypes.csproj", "{0E06C536-B33E-493C-9A43-B7EF74973F31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +63,10 @@ Global
 		{C4E06895-A4D0-467C-B8C7-62EA2D6E2B91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4E06895-A4D0-467C-B8C7-62EA2D6E2B91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4E06895-A4D0-467C-B8C7-62EA2D6E2B91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E06C536-B33E-493C-9A43-B7EF74973F31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E06C536-B33E-493C-9A43-B7EF74973F31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E06C536-B33E-493C-9A43-B7EF74973F31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E06C536-B33E-493C-9A43-B7EF74973F31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

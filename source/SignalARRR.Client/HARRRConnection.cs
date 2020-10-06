@@ -1,58 +1,37 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.AspNetCore.SignalR.Protocol;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
-using Reflectensions;
 using Reflectensions.ExtensionMethods;
-using Reflectensions.Helper;
-using Reflectensions.JsonConverters;
-using SignalARRR.Attributes;
-using SignalARRR.Client;
 using SignalARRR.Client.ExtensionMethods;
 using SignalARRR.CodeGenerator;
 using SignalARRR.Constants;
 
-namespace SignalARRR {
+namespace SignalARRR.Client {
     public class HARRRConnection {
         private HubConnection HubConnection { get; }
-        private HARRRConnectionOptions Options { get; }
         private ConcurrentDictionary<string, Delegate> ServerRequestHandlers { get; } = new ConcurrentDictionary<string, Delegate>();
+        private HARRRContext _harrrContext { get; }
 
-        private Func<Task<string>> AccessTokenProvider { get; }
+        public HARRRConnection(HARRRContext harrrContext) {
+
+            _harrrContext = harrrContext;
+            HubConnection = harrrContext.GetHubConnection();
 
 
-        private MessageHandler MessageHandler { get; }
-        private HARRRConnection(HubConnection hubConnection, HARRRConnectionOptions options = null) {
-
-            Options = options ?? new HARRRConnectionOptions();
-            HubConnection = hubConnection;
-            MessageHandler = new MessageHandler(this, Options);
-            AccessTokenProvider = hubConnection.GetAccessTokenProvider() ?? (() => Task.FromResult<string>(null));
-
-            this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication, 
-                async (requestMessage) => await MessageHandler.ChallengeAuthentication(requestMessage)
+            this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication,
+                async (requestMessage) => await _harrrContext.MessageHandler.ChallengeAuthentication(requestMessage)
             );
 
             this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest,
-                async (requestMessage) => await MessageHandler.InvokeServerRequest(requestMessage)
+                async (requestMessage) => await _harrrContext.MessageHandler.InvokeServerRequest(requestMessage)
             );
 
             this.On<ServerRequestMessage>(MethodNames.InvokeServerMessage,
-                async (requestMessage) => await MessageHandler.InvokeServerMessage(requestMessage)
+                async (requestMessage) => await _harrrContext.MessageHandler.InvokeServerMessage(requestMessage)
             );
         }
 
@@ -69,33 +48,33 @@ namespace SignalARRR {
 
 
         public void RegisterClientMethods<TClass>(string prefix = null) where TClass : class {
-            MessageHandler.RegisterMethods<TClass>(prefix);
+            _harrrContext.MessageHandler.RegisterMethods<TClass>(prefix);
         }
         public void RegisterClientMethods<TClass>(TClass instance, string prefix = null) where TClass : class {
-            MessageHandler.RegisterMethods<TClass>(instance, prefix);
+            _harrrContext.MessageHandler.RegisterMethods<TClass>(instance, prefix);
         }
         public void RegisterClientMethods<TClass>(Func<TClass> factory, string prefix = null) where TClass : class {
-            MessageHandler.RegisterMethods<TClass>(factory, prefix);
+            _harrrContext.MessageHandler.RegisterMethods<TClass>(factory, prefix);
         }
 
         public void RegisterClientMethods<TInterface, TClass>(string prefix = null) where TClass : class, TInterface {
-            MessageHandler.RegisterMethods<TInterface, TClass>(prefix);
+            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(prefix);
         }
         public void RegisterClientMethods<TInterface, TClass>(TClass instance, string prefix = null) where TClass : class, TInterface {
-            MessageHandler.RegisterMethods<TInterface, TClass>(instance, prefix);
+            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(instance, prefix);
         }
         public void RegisterClientMethods<TInterface, TClass>(Func<TClass> factory, string prefix = null) where TClass : class, TInterface {
-            MessageHandler.RegisterMethods<TInterface, TClass>(factory, prefix);
+            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(factory, prefix);
         }
 
         public void RegisterClientMethods(Type interfaceType, Type instanceType, string prefix = null) {
-            MessageHandler.RegisterMethods(interfaceType, instanceType, prefix);
+            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, prefix);
         }
         public void RegisterClientMethods(Type interfaceType, Type instanceType, object instance, string prefix = null) {
-            MessageHandler.RegisterMethods(interfaceType, instanceType, instance, prefix);
+            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, instance, prefix);
         }
         public void RegisterClientMethods(Type interfaceType, Type instanceType, Func<object> factory, string prefix = null) {
-            MessageHandler.RegisterMethods(interfaceType, instanceType, factory, prefix);
+            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, factory, prefix);
         }
 
 
@@ -137,63 +116,63 @@ namespace SignalARRR {
         }
 
         public async Task<object> InvokeCoreAsync(ClientRequestMessage message, Type returnType, CancellationToken cancellationToken = default) {
-            message = message.WithAuthorization(AccessTokenProvider);
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
             return await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { message }, cancellationToken);
         }
 
         public async Task InvokeCoreAsync(ClientRequestMessage message, CancellationToken cancellationToken = default) {
-            message = message.WithAuthorization(AccessTokenProvider);
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
             await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageOnServer, new object[] { message }, cancellationToken);
         }
 
         public async Task<object> InvokeCoreAsync(string methodName, Type returnType, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { msg }, cancellationToken);
         }
 
         public async Task InvokeCoreAsync(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageOnServer, new object[] { msg }, cancellationToken);
         }
 
         public async Task<TResult> InvokeCoreAsync<TResult>(ClientRequestMessage message, CancellationToken cancellationToken = default) {
-            message = message.WithAuthorization(AccessTokenProvider);
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
             var resultMsg = await HubConnection.InvokeCoreAsync<TResult>(MethodNames.InvokeMessageResultOnServer, new object[] { message }, cancellationToken);
             return resultMsg;
         }
         public async Task<TResult> InvokeCoreAsync<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             var resultMsg = await HubConnection.InvokeCoreAsync<TResult>(MethodNames.InvokeMessageResultOnServer, new object[] { msg }, cancellationToken);
             return resultMsg;
         }
 
         public Task SendCoreAsync(ClientRequestMessage message, CancellationToken cancellationToken = default) {
-            message = message.WithAuthorization(AccessTokenProvider);
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.SendCoreAsync(MethodNames.SendMessageToServer, new object[] { message }, cancellationToken);
         }
 
         public Task SendCoreAsync(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.SendCoreAsync(MethodNames.SendMessageToServer, new object[] { msg }, cancellationToken);
         }
 
         public IAsyncEnumerable<TResult> StreamAsyncCore<TResult>(ClientRequestMessage message, CancellationToken cancellationToken = default) {
-            message = message.WithAuthorization(AccessTokenProvider);
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.StreamAsyncCore<TResult>(MethodNames.StreamMessageFromServer, new object[] { message }, cancellationToken);
         }
 
         public IAsyncEnumerable<TResult> StreamAsyncCore<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.StreamAsyncCore<TResult>(MethodNames.StreamMessageFromServer, new object[] { msg }, cancellationToken);
         }
 
         public Task<ChannelReader<object>> StreamAsChannelCoreAsync(string methodName, Type returnType, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.StreamAsChannelCoreAsync(MethodNames.StreamMessageFromServer, returnType, new object[] { msg }, cancellationToken);
         }
 
         public async Task<ChannelReader<TResult>> StreamAsChannelCoreAsync<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return await HubConnection.StreamAsChannelCoreAsync<TResult>(MethodNames.StreamMessageFromServer, new object[] { msg }, cancellationToken);
         }
 
@@ -205,32 +184,15 @@ namespace SignalARRR {
         }
 
         public static HARRRConnection Create(Action<HubConnectionBuilder> builder, Action<HARRRConnectionOptionsBuilder> optionsBuilder = null) {
-
-            var intermediateBuilder = builder?.InvokeAction();
-
-            var hasJsonProtocol = intermediateBuilder.Services.Any(s => s.ServiceType == typeof(IHubProtocol) && s.ImplementationType == typeof(NewtonsoftJsonHubProtocol));
-            var hasMessagePackHubProtocol = intermediateBuilder.Services.Any(s => s.ServiceType == typeof(IHubProtocol) && s.ImplementationType.Name == "MessagePackHubProtocol");
-
-
-            if (!hasJsonProtocol && !hasMessagePackHubProtocol) {
-                intermediateBuilder = intermediateBuilder.AddNewtonsoftJsonProtocol();
-            }
-
-            return Create(intermediateBuilder?.Build(), optionsBuilder?.InvokeAction());
+            var intermediateBuilder = builder.InvokeAction();
+            var hubConnection = intermediateBuilder.Build();
+            return Create(hubConnection, optionsBuilder);
         }
 
         public static HARRRConnection Create(HubConnection hubConnection, Action<HARRRConnectionOptionsBuilder> optionsBuilder = null) {
-
-            return Create(hubConnection, optionsBuilder.InvokeAction());
+            var harrrContext = new HARRRContext(hubConnection.GetServiceProvider(), optionsBuilder?.InvokeAction() ?? new HARRRConnectionOptionsBuilder());
+            return new HARRRConnection(harrrContext);
         }
-
-        public static HARRRConnection Create(HubConnection hubConnection, HARRRConnectionOptions options = null) {
-            return new HARRRConnection(hubConnection, options);
-        }
-
-
-
-
 
         #region HubConnectionDecorator
 

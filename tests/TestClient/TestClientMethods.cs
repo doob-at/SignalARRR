@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -78,6 +79,24 @@ namespace TestClient {
 
         public bool CreateObjectFromTemplate(string templateName, Dictionary<string, object> properties) {
             return true;
+        }
+
+        public long FileLength(string filename, Stream filestream) {
+
+            if (File.Exists($"z:\\{filename}")) {
+                File.Delete($"z:\\{filename}");
+            }
+
+            using var fs =  File.Create($"z:\\{filename}");
+            filestream.CopyTo(fs);
+            return filestream.Length;
+        }
+
+        public void Complex1(ComplexTestClass compl) {
+
+
+            var c = compl;
+
         }
 
         public string GetName() {

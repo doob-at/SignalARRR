@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SignalARRR;
+using SignalARRR.Client;
 
 namespace TestClient_FullFramework
 {
@@ -20,12 +21,8 @@ namespace TestClient_FullFramework
                 .WithUrl("http://localhost.:5000/signalr/testhub", options => {
                     options.Headers["#tag"] = "bpk";
                     options.Headers["#Hostname"] = Environment.MachineName;
-                }).AddJsonProtocol(options => {
-                    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
-                    
                 })
-
-            .ConfigureLogging(log => {
+                .ConfigureLogging(log => {
                 log.AddConsole();
                 log.SetMinimumLevel(LogLevel.Debug);
             }));

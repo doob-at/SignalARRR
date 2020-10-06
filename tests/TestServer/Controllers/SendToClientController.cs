@@ -14,7 +14,7 @@ using TestShared;
 
 namespace TestServer.Controllers {
     [Route("api/sendtoclient")]
-    public class SendToClientController: Controller {
+    public class SendToClientController : Controller {
 
 
         private ClientManager ClientManager { get; }
@@ -24,14 +24,14 @@ namespace TestServer.Controllers {
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendToClient([FromBody]JToken query) {
+        public async Task<IActionResult> SendToClient([FromBody] JToken query) {
 
 
             var result = await ClientManager
                 .GetAllClients()
                 .WithAttribute("Tag", "BPK")
-                .InvokeOneAsync<object>("GetDate", new []{ query }, HttpContext.RequestAborted);
-            
+                .InvokeOneAsync<object>("GetDate", new[] { query }, HttpContext.RequestAborted);
+
             return Ok(result);
         }
         [HttpPost("all")]
@@ -57,8 +57,8 @@ namespace TestServer.Controllers {
         //    if (cl == null)
         //        return NotFound();
 
-           
-            
+
+
 
         //    return Ok(await cl.GetDictionary(DateTime.Now));
         //}
@@ -83,7 +83,8 @@ namespace TestServer.Controllers {
 
 
         [HttpPost("{className}")]
-        public async Task<IActionResult> CreateObject(string className, [FromBody] Dictionary<string, object> properties) {
+        public async Task<IActionResult> CreateObject(string className,
+            [FromBody] Dictionary<string, object> properties) {
 
             var cl1 = ClientManager.GetAllClients().FirstOrDefault();
 
@@ -95,6 +96,32 @@ namespace TestServer.Controllers {
             var res = cl1.GetTypedMethods<ITestClientMethods>().CreateObject(className, properties);
             //InvokeScsmProxyClient(methods => methods.CreateObject(className, properties));
             return Ok(res);
+        }
+
+        [HttpGet("complex1")]
+        public async Task<IActionResult> ComplexType1() {
+
+            var cl1 = ClientManager.GetAllClients().FirstOrDefault();
+
+            if (cl1 == null)
+                throw new Exception("No client found!");
+
+
+            var ct = new ComplexTestClass();
+            ct.Name = "Bernhard";
+            ct.Age = 99;
+            ct.Ok = true;
+            ct.Timestamp = DateTime.Now;
+            ct.Properties = new Dictionary<string, object> {
+                ["Dog1"] = "Maggi",
+                ["Dog2"] = "Wilson",
+                ["Wife"] = true,
+                ["Child"] = 1
+            };
+
+            cl1.GetTypedMethods<ITestClientMethods>("ClientTest").Complex1(ct);
+            //InvokeScsmProxyClient(methods => methods.CreateObject(className, properties));
+            return Ok();
         }
 
     }

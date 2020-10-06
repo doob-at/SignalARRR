@@ -40,8 +40,8 @@ namespace TestServer
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseSerilog()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
+                .ConfigureWebHostDefaults(webBuilder => {
+                    webBuilder.ConfigureKestrel(opts => opts.Limits.MaxRequestBodySize = null);
                     webBuilder.UseStartup<Startup>();
                 });
     }

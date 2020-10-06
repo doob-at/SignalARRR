@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using SignalARRR.CustomTypes;
+using SignalARRR.CustomTypes.Attributes;
 
 namespace TestShared {
     public interface ITestClientMethods {
@@ -22,5 +26,9 @@ namespace TestShared {
         bool CreateObject(string className, Dictionary<string, object> properties);
 
         bool CreateObjectFromTemplate(string templateName, Dictionary<string, object> properties);
+
+        long FileLength(string id, Stream filestream);
+
+        void Complex1([AsStream]ComplexTestClass compl);
     }
 }

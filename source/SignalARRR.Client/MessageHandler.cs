@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Security;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -20,21 +22,11 @@ using SignalARRR.Helper;
 
 namespace SignalARRR.Client {
     public class MessageHandler {
-
-        private HARRRConnectionOptions Options { get; }
-        private HARRRConnection HARRRConnection { get; }
-        private Func<Task<string>> AccessTokenProvider { get; }
-
+        private readonly HARRRContext _harrrContext;
         private ISignalARRRClientMethodsCollection MethodsCollection { get; } = new SignalARRRClientMethodsCollection();
-        private bool UsesNewtonsoftJson { get; }
-        private bool UsesMessagePack { get; }
 
-        public MessageHandler(HARRRConnection harrrConnection, HARRRConnectionOptions options) {
-            HARRRConnection = harrrConnection;
-            Options = options;
-            UsesNewtonsoftJson = HARRRConnection.AsSignalRHubConnection().UsesNewtonsoftJson();
-            UsesMessagePack = HARRRConnection.AsSignalRHubConnection().UsesMessagePack();
-            AccessTokenProvider = HARRRConnection.AsSignalRHubConnection().GetAccessTokenProvider() ?? (() => Task.FromResult<string>(null));
+        public MessageHandler(HARRRContext harrrContext) {
+            _harrrContext = harrrContext;
         }
 
         public async Task ChallengeAuthentication(ServerRequestMessage message) {
@@ -42,13 +34,13 @@ namespace SignalARRR.Client {
             string payload = null;
             string error = null;
             try {
-                payload = await AccessTokenProvider();
+                payload = await _harrrContext.AccessTokenProvider();
             } catch (Exception e) {
                 error = e.GetBaseException().Message;
             }
             
 
-            await HARRRConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { message.Id, payload, error });
+            await _harrrContext.GetHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { message.Id, payload, error });
 
         }
 
@@ -59,7 +51,7 @@ namespace SignalARRR.Client {
                 var payload = await InvokeMethodAsync(message);
                 await SendResponse(message.Id, payload, null);
             } catch (Exception e) {
-                await HARRRConnection.AsSignalRHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { message.Id, null, e.GetBaseException().Message });
+                await _harrrContext.GetHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { message.Id, null, e.GetBaseException().Message });
             }
 
         }
@@ -97,7 +89,7 @@ namespace SignalARRR.Client {
 
         public void RegisterMethods(Type interfaceType, Type instanceType, string prefix = null) {
             Func<object> factory = () => {
-                var fromServiceProvider = HARRRConnection.AsSignalRHubConnection().GetServiceProvider().GetService(instanceType);
+                var fromServiceProvider = _harrrContext.GetHubConnection().GetServiceProvider().GetService(instanceType);
                 if (fromServiceProvider != null) {
                     return fromServiceProvider;
                 }
@@ -125,8 +117,8 @@ namespace SignalARRR.Client {
 
         private async Task SendResponse(Guid id, object payload, string error) {
 
-            if (Options.HttpResponse) {
-                var url = HARRRConnection.AsSignalRHubConnection().GetResponseUri(id, error);
+            if (_harrrContext.UseHttpResponse) {
+                var url = _harrrContext.GetResponseUri(id, error);
                 var httpClient = new HttpClient();
 
                 if (!string.IsNullOrEmpty(error)) {
@@ -137,7 +129,7 @@ namespace SignalARRR.Client {
                 }
                 
             } else {
-                await HARRRConnection.AsSignalRHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { id, payload, error });
+                await _harrrContext.GetHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { id, payload, error });
             }
         }
 
@@ -157,7 +149,7 @@ namespace SignalARRR.Client {
             }
 
 
-            var parameters = BuildExecuteMethodParameters(methodCallInfo.MethodInfo, serverRequestMessage.Arguments);
+            var parameters = await BuildExecuteMethodParameters(methodCallInfo.MethodInfo, serverRequestMessage.Arguments);
 
             var instance = methodCallInfo.Factory != null ? methodCallInfo.Factory.DynamicInvoke() : Activator.CreateInstance(methodInfo.DeclaringType);
 
@@ -177,48 +169,119 @@ namespace SignalARRR.Client {
 
         }
 
-        private object[] BuildExecuteMethodParameters(MethodInfo methodInfo, IEnumerable<object> parameters, CancellationToken cancellation = default) {
+        private async Task<object[]> BuildExecuteMethodParameters(MethodInfo methodInfo, IEnumerable<object> parameters, CancellationToken cancellation = default) {
 
             int paramsPosition = 0;
             var @params = parameters.ToList();
-            return methodInfo.GetParameters().Select(p => {
 
-                if (p.ParameterType == typeof(CancellationToken)) {
-                    return cancellation;
-                }
+            var argumentList = new List<object>();
 
+            foreach (var parameterInfo in methodInfo.GetParameters())
+            {
                 if (@params.Count < paramsPosition) {
                     throw new IndexOutOfRangeException();
                 }
-
                 var par = @params[paramsPosition];
+                paramsPosition++;
 
-                if (par != null && p.ParameterType != par.GetType()) {
-
-                    if (par is JToken jt) {
-                        par = jt.ToObject(p.ParameterType);
-                    } else {
-                        par = par.To(p.ParameterType);
-                    }
-
+                if (parameterInfo.ParameterType == typeof(CancellationToken)) {
+                    argumentList.Add(cancellation);
+                    continue;
                 }
 
-                paramsPosition++;
-                return par;
+                par = await PrepareArgumentForType(parameterInfo.ParameterType, par);
 
-            }).ToArray();
+                if (par == null) {
+                    argumentList.Add(null);
+                    continue;
+                }
+
+                if (parameterInfo.ParameterType != par.GetType()) {
+
+                    if (par.TryTo(parameterInfo.ParameterType, out var pt)) {
+                        par = pt;
+                    } else {
+                        var json = Json.Converter.ToJson(par);
+                        par = Json.Converter.ToObject(json, parameterInfo.ParameterType);
+                    }
+                   
+                }
+
+                argumentList.Add(par);
+
+            }
+
+            return argumentList.ToArray();
+            //return methodInfo.GetParameters().Select(p => {
+
+            //    if (p.ParameterType == typeof(CancellationToken)) {
+            //        return cancellation;
+            //    }
+
+            //    if (@params.Count < paramsPosition) {
+            //        throw new IndexOutOfRangeException();
+            //    }
+
+            //    var par = @params[paramsPosition];
+
+            //    par = await PrepareArgumentForType(p.ParameterType, par);
+
+            //    if (par != null && p.ParameterType != par.GetType()) {
+
+            //        if (par is JToken jt) {
+            //            par = jt.ToObject(p.ParameterType);
+            //        } else {
+            //            par = par.To(p.ParameterType);
+            //        }
+
+            //    }
+
+            //    paramsPosition++;
+            //    return par;
+
+            //}).ToArray();
 
         }
 
+        private async Task<object> PrepareArgumentForType(Type type, object argument) {
+
+            if (argument == null) {
+                if (type.IsNullableType()) {
+                    return null;
+                } else {
+                    return Activator.CreateInstance(type);
+                }
+            }
+
+            if (type == typeof(Stream)) {
+                
+                var json = Json.Converter.ToJson(argument);
+                var streamReference = Json.Converter.ToObject<StreamReference>(json);
+                var resolver = new StreamReferenceResolver(streamReference, _harrrContext);
+                return await resolver.ProcessStreamArgument();
+            }
+
+            return argument;
+        }
+
+        
+
 
         private ServerRequestMessage PrepareServerRequestMessage(ServerRequestMessage message) {
-
-            if (!UsesNewtonsoftJson && !UsesMessagePack) { // System.Text.Json is used
-                var requestJson = JsonSerializer.Serialize(message);
-                message = Json.Converter.ToObject<ServerRequestMessage>(requestJson);
-            } else if (!UsesNewtonsoftJson) {// Messagepack is used
-                var requestJson = Json.Converter.ToJson(message);
-                message = Json.Converter.ToObject<ServerRequestMessage>(requestJson);
+            switch (_harrrContext.HubProtocolType)
+            {
+                case HubProtocolType.JsonHubProtocol:
+                {
+                    var requestJson = JsonSerializer.Serialize(message);
+                    message = Json.Converter.ToObject<ServerRequestMessage>(requestJson);
+                    break;
+                }
+                case HubProtocolType.MessagePackHubProtocol:
+                {
+                    var requestJson = Json.Converter.ToJson(message);
+                    message = Json.Converter.ToObject<ServerRequestMessage>(requestJson);
+                    break;
+                }
             }
 
             return message;

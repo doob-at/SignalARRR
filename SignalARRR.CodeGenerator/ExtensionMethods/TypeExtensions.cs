@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Channels;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reflectensions.ExtensionMethods;
 
-namespace SignalARRR.CodeGenerator {
+namespace SignalARRR.CodeGenerator.ExtensionMethods {
     public static class TypeExtensions {
         public static TypeSyntax AsTypeSyntax(this Type type) {
 

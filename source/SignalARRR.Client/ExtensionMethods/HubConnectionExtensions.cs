@@ -18,38 +18,6 @@ namespace SignalARRR.Client.ExtensionMethods {
 
         }
 
-        public static bool UsesNewtonsoftJson(this HubConnection hubConnection) {
-
-            var sp = hubConnection.GetServiceProvider();
-            return sp.GetService<IHubProtocol>() is NewtonsoftJsonHubProtocol;
-
-        }
-
-        public static bool UsesMessagePack(this HubConnection hubConnection) {
-
-            var sp = hubConnection.GetServiceProvider();
-            return  sp.GetService<IHubProtocol>().GetType().Name == "MessagePackHubProtocol";
-
-        }
-
-        public static Uri GetResponseUri(this HubConnection hubConnection, Guid id, string error = null) {
-
-            var serviceProvider = hubConnection.GetServiceProvider();
-            var endPoint = serviceProvider.GetRequiredService<EndPoint>();
-            var endpointUri = endPoint.GetPropertyValue<Uri>("Uri");
-            
-            var uriBuilder = new UriBuilder(new Uri($"{endpointUri}/response/{id}"));
-
-            if (!string.IsNullOrEmpty(error)) {
-                uriBuilder.Query = WebUtility.UrlEncode($"error={error}")!;
-            }
-
-
-            return uriBuilder.Uri;
-
-
-        }
-
         public static Func<Task<string>> GetAccessTokenProvider(this HubConnection hubConnection) {
 
             var connectionFactory = hubConnection.GetType().GetField("_connectionFactory", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(hubConnection);

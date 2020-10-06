@@ -15,6 +15,7 @@ namespace SignalARRR.Server.ExtensionMethods {
 
             AddSignalARRRMethods(serviceCollection, serverOptions);
             serviceCollection.AddSingleton<ServerRequestManager>();
+            serviceCollection.AddSingleton<ServerPushStreamManager>();
             serviceCollection.AddSingleton<InMemoryHARRRClientManager>();
             serviceCollection.AddSingleton<IHARRRClientManager>(sp => sp.GetRequiredService<InMemoryHARRRClientManager>());
             serviceCollection.AddSingleton<ClientManager>(sp => new ClientManager(sp.GetRequiredService<IHARRRClientManager>()));

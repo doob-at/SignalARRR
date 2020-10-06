@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using SignalARRR;
+using SignalARRR.Client;
 using TestShared;
 
 namespace TestClient {

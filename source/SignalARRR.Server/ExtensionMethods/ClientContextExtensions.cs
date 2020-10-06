@@ -17,6 +17,7 @@ namespace SignalARRR.Server.ExtensionMethods {
 
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
+            
             var msg = new ServerRequestMessage(method, arguments);
             var res = await harrrContext.InvokeClientAsync<TResult>(clientContext.Id, msg, cancellationToken);
             return new ClientCollectionResult<TResult>(clientContext.Id, res);

@@ -10,7 +10,7 @@ namespace SignalARRR {
         public object[] Arguments { get; set; }
         public string[] GenericArguments { get; set; }
 
-        private ClientRequestMessage() { }
+        public ClientRequestMessage() { }
 
         public ClientRequestMessage(string methodName) {
             Method = methodName;

@@ -9,6 +9,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SignalARRR.CustomTypes\SignalARRR.CustomTypes.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Threading.Channels">
       <HintPath>..\tests\TestClient_FullFramework\bin\Debug\System.Threading.Channels.dll</HintPath>
     </Reference>

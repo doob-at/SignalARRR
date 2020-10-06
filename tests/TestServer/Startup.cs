@@ -67,7 +67,7 @@ namespace TestServer
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHubWithResponseController<TestHub>("/signalr/testhub");
+                endpoints.MapHARRRController<TestHub>("/signalr/testhub");
 
                 endpoints.MapControllers();
 

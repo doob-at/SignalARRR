@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SignalARRR;
+using SignalARRR.Client;
 using TestShared;
 
 namespace TestClient {
@@ -31,8 +32,9 @@ namespace TestClient {
                         //    var dt = DateTime.Now.ToString();
                         //    return Task.FromResult(dt);
                         //};
+                        
                     })
-                    .AddMessagePackProtocol()
+                    //.AddMessagePackProtocol()
                     .ConfigureLogging(log => {
                         log.AddConsole();
                         log.SetMinimumLevel(LogLevel.Error);
