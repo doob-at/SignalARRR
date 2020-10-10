@@ -4,8 +4,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using SignalARRR.CustomTypes;
-using SignalARRR.CustomTypes.Attributes;
 
 namespace TestShared {
     public interface ITestClientMethods {
@@ -29,6 +27,8 @@ namespace TestShared {
 
         long FileLength(string id, Stream filestream);
 
-        void Complex1([AsStream]ComplexTestClass compl);
+        void Complex1(ComplexTestClass compl);
+
+        IncidentClass TestExpandableObject(IncidentClass expandableObject);
     }
 }

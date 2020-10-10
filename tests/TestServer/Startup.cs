@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Serilog;
 using SignalARRR.Server;
@@ -25,14 +27,19 @@ namespace TestServer
         {
             services.AddMvc().AddNewtonsoftJson(options => {
                 options.SerializerSettings.Converters.Add(new IpAddressConverter());
-                options.SerializerSettings.Converters.Add(new ClaimsConverter());
-                options.SerializerSettings.Converters.Add(new ClaimsPrincipalConverter());
+                options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
             });
 
             //services.AddAuthentication("AccessToken").AddTestTokenValidation();
 
-            services.AddSignalR().AddNewtonsoftJsonProtocol()
+            services.AddSignalR().AddNewtonsoftJsonProtocol(options =>
+                {
+                    options.PayloadSerializerSettings.ContractResolver = new DefaultContractResolver();
+                    options.PayloadSerializerSettings.Converters.Add(new StringEnumConverter());
+                    options.PayloadSerializerSettings.Converters.Add(new IpAddressConverter());
+                    options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                })
                 .AddMessagePackProtocol();
 
             services.AddSignalARRR(builder => builder

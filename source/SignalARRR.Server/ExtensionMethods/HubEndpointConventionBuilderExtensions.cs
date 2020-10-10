@@ -86,9 +86,7 @@ namespace SignalARRR.Server.ExtensionMethods {
                                 await httpContext.Response.Body.FlushAsync(httpContext.RequestAborted)
                                     .ConfigureAwait(false);
                             }
-
                         }
-                        await context.Ok();
                         requestManager.CompleteProxyRequest(id);
                         return;
                     }

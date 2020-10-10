@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
+using Reflectensions.JsonConverters;
 using SignalARRR;
 using SignalARRR.Client;
 using TestShared;
@@ -33,6 +37,13 @@ namespace TestClient {
                         //    return Task.FromResult(dt);
                         //};
                         
+                    })
+                    .AddNewtonsoftJsonProtocol(options =>
+                    {
+                        options.PayloadSerializerSettings.ContractResolver = new DefaultContractResolver();
+                        options.PayloadSerializerSettings.Converters.Add(new StringEnumConverter());
+                        options.PayloadSerializerSettings.Converters.Add(new IpAddressConverter());
+                        options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                     })
                     //.AddMessagePackProtocol()
                     .ConfigureLogging(log => {

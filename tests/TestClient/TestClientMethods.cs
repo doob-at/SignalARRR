@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Reflectensions;
 using SignalARRR;
 using SignalARRR.Attributes;
 using SignalARRR.Client;
@@ -96,6 +97,18 @@ namespace TestClient {
 
 
             var c = compl;
+
+        }
+
+        public IncidentClass TestExpandableObject(IncidentClass expandableObject) {
+
+
+            
+            expandableObject["TestEnum"] = TestEnum.None;
+            //expandableObject.TestEnum = TestEnum.Other;
+            expandableObject["zusätzlich"] = DateTime.Now;
+
+            return expandableObject;
 
         }
 

@@ -124,5 +124,31 @@ namespace TestServer.Controllers {
             return Ok();
         }
 
+        [HttpGet("expandable")]
+        public async Task<IActionResult> ExpandableObject1() {
+
+            
+           
+            var ct = new IncidentClass();
+            ct.Id = Guid.NewGuid().ToString();
+            ct.TestEnum = TestEnum.Last;
+
+            ct["Dog1"] = "Maggi";
+            ct["Dog2"] = "Wilson";
+
+            var dict = new Dictionary<string, object>(ct.GetProperties());
+
+
+            var cl1 = ClientManager.GetAllClients().FirstOrDefault();
+
+            if (cl1 == null)
+                throw new Exception("No client found!");
+
+
+            var res = cl1.GetTypedMethods<ITestClientMethods>("ClientTest").TestExpandableObject(ct);
+            //InvokeScsmProxyClient(methods => methods.CreateObject(className, properties));
+            return Ok(res);
+        }
+
     }
 }

@@ -5,12 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Expandable" Version="1.0.0" />
     <PackageReference Include="System.Threading.Channels" Version="4.7.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SignalARRR.CustomTypes\SignalARRR.CustomTypes.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.Threading.Channels">
