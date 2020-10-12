@@ -20,6 +20,7 @@ using SignalARRR.Attributes;
 using SignalARRR.Client.ExtensionMethods;
 using SignalARRR.Constants;
 using SignalARRR.Helper;
+using SignalARRR.RemoteReferenceTypes;
 
 namespace SignalARRR.Client {
     public class MessageHandler {
