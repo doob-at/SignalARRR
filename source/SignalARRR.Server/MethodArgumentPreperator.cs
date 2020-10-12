@@ -31,6 +31,10 @@ namespace SignalARRR.Server {
                         yield return PrepareStream(stream);
                             continue;
                         }
+                    case CancellationToken cancellationToken: {
+                        yield return null;
+                            continue;
+                        }
                     default:
                         yield return argument;
                         break;
@@ -43,5 +47,11 @@ namespace SignalARRR.Server {
             return new StreamReference() { Uri = identifier };
         }
 
+        //private CancellationTokenReference PrepareCancellationToken(CancellationToken cancellationToken) {
+
+        //    var tokenReference = new CancellationTokenReference();
+        //    cancellationToken.Register(async () => await _clientContext.CancelToken(tokenReference));
+        //    return tokenReference;
+        //}
     }
 }

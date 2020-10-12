@@ -38,14 +38,14 @@ namespace TestClient {
                         //};
                         
                     })
-                    .AddNewtonsoftJsonProtocol(options =>
-                    {
-                        options.PayloadSerializerSettings.ContractResolver = new DefaultContractResolver();
-                        options.PayloadSerializerSettings.Converters.Add(new StringEnumConverter());
-                        options.PayloadSerializerSettings.Converters.Add(new IpAddressConverter());
-                        options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    })
-                    //.AddMessagePackProtocol()
+                    //.AddNewtonsoftJsonProtocol(options =>
+                    //{
+                    //    options.PayloadSerializerSettings.ContractResolver = new DefaultContractResolver();
+                    //    options.PayloadSerializerSettings.Converters.Add(new StringEnumConverter());
+                    //    options.PayloadSerializerSettings.Converters.Add(new IpAddressConverter());
+                    //    options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    //})
+                    .AddMessagePackProtocol()
                     .ConfigureLogging(log => {
                         log.AddConsole();
                         log.SetMinimumLevel(LogLevel.Error);
