@@ -41,7 +41,9 @@ namespace SignalARRR.Server {
         }
 
         public override Task SendAsync(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
-            var msg = new ServerRequestMessage(methodName, arguments);
+            var preparedArguments = PrepareArguments(arguments, _clientContext).ToList();
+
+            var msg = new ServerRequestMessage(methodName, preparedArguments);
             msg.GenericArguments = genericArguments;
             using var serviceProviderScope = _clientContext.ServiceProvider.CreateScope();
 

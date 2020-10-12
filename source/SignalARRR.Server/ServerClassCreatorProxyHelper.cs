@@ -14,10 +14,12 @@ namespace SignalARRR.Server {
     public class ServerClassCreatorProxyHelper : ClassCreatorHelper {
         private readonly ClientContext _clientContext;
         private readonly HttpContext _httpContext;
+        private readonly ServerPushStreamManager _pushStreamManager;
 
         public ServerClassCreatorProxyHelper(ClientContext clientContext, HttpContext httpContext) {
             _clientContext = clientContext;
             _httpContext = httpContext;
+            _pushStreamManager = clientContext.ServiceProvider.GetRequiredService<ServerPushStreamManager>();
         }
 
         public override T Invoke<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
@@ -27,9 +29,9 @@ namespace SignalARRR.Server {
         public override async Task<T> InvokeAsync<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
 
 
-            
+            var preparedArguments = PrepareArguments(arguments, _clientContext).ToList();
 
-            var msg = new ServerRequestMessage(methodName, arguments);
+            var msg = new ServerRequestMessage(methodName, preparedArguments);
             msg.GenericArguments = genericArguments;
             using var serviceProviderScope = _clientContext.ServiceProvider.CreateScope();
 
@@ -44,7 +46,10 @@ namespace SignalARRR.Server {
         }
 
         public override async Task SendAsync(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
-            var msg = new ServerRequestMessage(methodName, arguments);
+
+            var preparedArguments = PrepareArguments(arguments, _clientContext).ToList();
+
+            var msg = new ServerRequestMessage(methodName, preparedArguments);
             msg.GenericArguments = genericArguments;
             using var serviceProviderScope = _clientContext.ServiceProvider.CreateScope();
 
@@ -59,6 +64,25 @@ namespace SignalARRR.Server {
         }
 
 
-        
+        private IEnumerable<object> PrepareArguments(IEnumerable<object> arguments, ClientContext clientContext) {
+            foreach (var argument in arguments) {
+
+                if (argument == null) {
+                    yield return null;
+                    continue;
+                }
+
+
+                if (argument is Stream stream) {
+
+                    var identifier = _pushStreamManager.StoreStreamForDownload(stream, clientContext.ConnectedTo);
+                    var streamReference = new StreamReference() { Uri = identifier };
+                    yield return streamReference;
+                    continue;
+                }
+
+                yield return argument;
+            }
+        }
     }
 }
