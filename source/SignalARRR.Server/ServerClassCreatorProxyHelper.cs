@@ -34,10 +34,13 @@ namespace SignalARRR.Server {
             var preparedArguments = _methodArgumentPreperator.PrepareArguments(arguments).ToList();
 
             var msg = new ServerRequestMessage(methodName, preparedArguments);
-            
+            if (cancellationToken != CancellationToken.None) {
                 msg.CancellationGuid = Guid.NewGuid();
-                _httpContext.RequestAborted.Register(() => _clientContext.CancelToken(msg.CancellationGuid.Value));
-            
+                cancellationToken.Register(() => {
+                    _clientContext.CancelToken(msg.CancellationGuid.Value);
+                });
+            }
+
             msg.GenericArguments = genericArguments;
             using var serviceProviderScope = _clientContext.ServiceProvider.CreateScope();
 
@@ -56,8 +59,13 @@ namespace SignalARRR.Server {
             var preparedArguments = _methodArgumentPreperator.PrepareArguments(arguments).ToList();
 
             var msg = new ServerRequestMessage(methodName, preparedArguments);
-            msg.CancellationGuid = Guid.NewGuid();
-            _httpContext.RequestAborted.Register(() => _clientContext.CancelToken(msg.CancellationGuid.Value));
+            if (cancellationToken != CancellationToken.None) {
+                msg.CancellationGuid = Guid.NewGuid();
+                cancellationToken.Register(() => {
+                    _clientContext.CancelToken(msg.CancellationGuid.Value);
+                });
+            }
+
             msg.GenericArguments = genericArguments;
             using var serviceProviderScope = _clientContext.ServiceProvider.CreateScope();
 
