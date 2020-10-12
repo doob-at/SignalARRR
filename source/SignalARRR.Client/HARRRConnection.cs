@@ -22,17 +22,20 @@ namespace SignalARRR.Client {
             HubConnection = harrrContext.GetHubConnection();
 
 
-            this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication,
-                async (requestMessage) => await _harrrContext.MessageHandler.ChallengeAuthentication(requestMessage)
-            );
+            this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication, (requestMessage) => _harrrContext.MessageHandler.ChallengeAuthentication(requestMessage));
+
+            this.On<ServerRequestMessage>(MethodNames.CancelTokenFromServer, (requestMessage) => _harrrContext.MessageHandler.CancelTokenFromServer(requestMessage));
+
 
             this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest,
-                async (requestMessage) => await _harrrContext.MessageHandler.InvokeServerRequest(requestMessage)
-            );
+                 (requestMessage) => {
+                     _harrrContext.MessageHandler.InvokeServerRequest(requestMessage);
+                 });
 
             this.On<ServerRequestMessage>(MethodNames.InvokeServerMessage,
-                async (requestMessage) => await _harrrContext.MessageHandler.InvokeServerMessage(requestMessage)
-            );
+                 (requestMessage) => {
+                     _harrrContext.MessageHandler.InvokeServerMessage(requestMessage);
+                 });
         }
 
 

@@ -30,5 +30,7 @@ namespace TestShared {
         void Complex1(ComplexTestClass compl);
 
         IncidentClass TestExpandableObject(IncidentClass expandableObject);
+
+        Task<string> Wait(int seconds, CancellationToken cancellationToken);
     }
 }

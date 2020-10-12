@@ -13,10 +13,12 @@ namespace SignalARRR.Server {
     public class ServerClassCreatorHelper : ClassCreatorHelper {
         private readonly ClientContext _clientContext;
         private readonly ServerPushStreamManager _pushStreamManager;
+        private readonly MethodArgumentPreperator _methodArgumentPreperator;
 
         public ServerClassCreatorHelper(ClientContext clientContext) {
             _clientContext = clientContext;
             _pushStreamManager = clientContext.ServiceProvider.GetRequiredService<ServerPushStreamManager>();
+            _methodArgumentPreperator = new MethodArgumentPreperator(_clientContext);
         }
 
         public override T Invoke<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
@@ -25,9 +27,17 @@ namespace SignalARRR.Server {
 
         public override Task<T> InvokeAsync<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
 
-            var preparedArguments = PrepareArguments(arguments, _clientContext).ToList();
+            
+            var preparedArguments = _methodArgumentPreperator.PrepareArguments(arguments).ToList();
 
             var msg = new ServerRequestMessage(methodName, preparedArguments);
+            if (cancellationToken != CancellationToken.None) {
+                msg.CancellationGuid = Guid.NewGuid();
+                cancellationToken.Register(() => {
+                    _clientContext.CancelToken(msg.CancellationGuid.Value);
+                });
+            }
+
             msg.GenericArguments = genericArguments;
             using var serviceProviderScope = _clientContext.ServiceProvider.CreateScope();
 
@@ -41,9 +51,13 @@ namespace SignalARRR.Server {
         }
 
         public override Task SendAsync(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
-            var preparedArguments = PrepareArguments(arguments, _clientContext).ToList();
+            var preparedArguments = _methodArgumentPreperator.PrepareArguments(arguments).ToList();
 
             var msg = new ServerRequestMessage(methodName, preparedArguments);
+            if (cancellationToken != CancellationToken.None) {
+                msg.CancellationGuid = Guid.NewGuid();
+                cancellationToken.Register(() => _clientContext.CancelToken(msg.CancellationGuid.Value));
+            }
             msg.GenericArguments = genericArguments;
             using var serviceProviderScope = _clientContext.ServiceProvider.CreateScope();
 
@@ -56,25 +70,6 @@ namespace SignalARRR.Server {
             throw new NotImplementedException();
         }
 
-        private IEnumerable<object> PrepareArguments(IEnumerable<object> arguments, ClientContext clientContext) {
-            foreach (var argument in arguments) {
-
-                if (argument == null) {
-                    yield return null;
-                    continue;
-                }
-                    
-                
-                if (argument is Stream stream) {
-
-                    var identifier = _pushStreamManager.StoreStreamForDownload(stream, clientContext.ConnectedTo);
-                    var streamReference = new StreamReference() {Uri = identifier};
-                    yield return streamReference;
-                    continue;
-                }
-
-                yield return argument;
-            }
-        }
+        
     }
 }

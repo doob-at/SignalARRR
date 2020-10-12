@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using SignalARRR.Constants;
+using SignalARRR.RemoteReferenceTypes;
 
 namespace SignalARRR.Server.ExtensionMethods {
     public static class ClientContextExtensions {
@@ -22,6 +24,18 @@ namespace SignalARRR.Server.ExtensionMethods {
             var res = await harrrContext.InvokeClientAsync<TResult>(clientContext.Id, msg, cancellationToken);
             return new ClientCollectionResult<TResult>(clientContext.Id, res);
 
+        }
+
+        public static async Task CancelToken(this ClientContext clientContext, Guid tokenReference) {
+
+            using var serviceProviderScope = clientContext.ServiceProvider.CreateScope();
+
+            var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
+            var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
+
+            var msg = new ServerRequestMessage(MethodNames.CancelTokenFromServer, tokenReference);
+
+            await harrrContext.CancelToken(clientContext.Id, tokenReference);
         }
 
         public static async Task Proxy(this ClientContext clientContext, string method, object[] arguments, HttpContext httpContext) {

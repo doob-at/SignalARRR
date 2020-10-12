@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Reflectensions;
 using SignalARRR;
@@ -110,6 +111,22 @@ namespace TestClient {
 
             return expandableObject;
 
+        }
+
+        public async Task<string> Wait(int seconds, CancellationToken cancellationToken) {
+
+            try {
+                await Task.Delay(seconds, cancellationToken);
+                Console.WriteLine("OK");
+                return "OK";
+                
+            } catch (Exception e) {
+                Console.WriteLine(e.GetBaseException().Message);
+                return e.GetBaseException().Message;
+            }
+            
+
+            
         }
 
         public string GetName() {

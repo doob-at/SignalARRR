@@ -61,7 +61,20 @@ namespace SignalARRR.Server {
             
         }
 
-        private async Task<TResult> InvokeClientMessageAsync<TResult>(string clientId, string methodName, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
+        public async Task CancelToken(string clientId, Guid id) {
+
+            try {
+                var msg = new ServerRequestMessage(MethodNames.CancelTokenFromServer);
+                msg.CancellationGuid = id;
+                await SendClientMessageAsync(clientId, MethodNames.CancelTokenFromServer, msg, CancellationToken.None);
+            } catch (Exception e) {
+                Console.WriteLine(e);
+                throw;
+            }
+
+        }
+
+        internal async Task<TResult> InvokeClientMessageAsync<TResult>(string clientId, string methodName, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
 
 
             var m = ServerRequestManager.AddRequest(serverRequestMessage.Id);
@@ -84,7 +97,7 @@ namespace SignalARRR.Server {
 
         }
 
-        private async Task ProxyClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, HttpContext httpContext) {
+        internal async Task ProxyClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, HttpContext httpContext) {
 
 
             var m = ServerRequestManager.AddProxyRequest(serverRequestMessage.Id, httpContext);
@@ -112,10 +125,10 @@ namespace SignalARRR.Server {
         //    }
         //}
 
-        private async Task SendClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
+        internal async Task SendClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
 
 
-            var m = ServerRequestManager.AddRequest(serverRequestMessage.Id);
+            //var m = ServerRequestManager.AddRequest(serverRequestMessage.Id);
             await HubContext.Clients.Client(clientId).SendCoreAsync(methodName, new[] { serverRequestMessage }, cancellationToken);
             
         }

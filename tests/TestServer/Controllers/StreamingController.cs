@@ -62,7 +62,24 @@ namespace TestServer.Controllers {
             return Ok(length);
         }
 
+        [HttpPost("wait/{seconds}")]
+        public async Task<IActionResult> Wait(int seconds) {
 
+            //var cl2 = ClientManager
+            //    .GetAllClients()
+            //    .FirstOrDefault()?.GetTypedMethods<ITestClientMethods>("ClientTest");
+
+            var cl = ClientManager
+                .GetAllClients()
+                .FirstOrDefault();
+
+            if (cl == null)
+                await this.HttpContext.NotFound();
+
+            var length = await cl.GetTypedMethods<ITestClientMethods>("ClientTest").Wait(seconds, HttpContext.RequestAborted);
+
+            return Ok(length);
+        }
     }
 
 }

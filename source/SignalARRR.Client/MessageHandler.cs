@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -135,8 +136,6 @@ namespace SignalARRR.Client {
 
         private async Task<object> InvokeMethodAsync(ServerRequestMessage serverRequestMessage) {
 
-
-
             var methodCallInfo = MethodsCollection.GetMethod(serverRequestMessage.Method);
             if(methodCallInfo == null)
                 throw new Exception($"Method '{serverRequestMessage.Method}' not found!");
@@ -148,8 +147,15 @@ namespace SignalARRR.Client {
                 throw new Exception(errorMsg);
             }
 
+            CancellationToken cancellationToken = default;
+            if (serverRequestMessage.CancellationGuid.HasValue) {
+                var cancellation = new CancellationTokenSource();
+                cancellationTokenSources.TryAdd(serverRequestMessage.CancellationGuid.Value, cancellation);
+                cancellationToken = cancellation.Token;
+            }
+            
 
-            var parameters = await BuildExecuteMethodParameters(methodCallInfo.MethodInfo, serverRequestMessage.Arguments);
+            var parameters = await BuildExecuteMethodParameters(methodCallInfo.MethodInfo, serverRequestMessage.Arguments, cancellationToken);
 
             var instance = methodCallInfo.Factory != null ? methodCallInfo.Factory.DynamicInvoke() : Activator.CreateInstance(methodInfo.DeclaringType);
 
@@ -159,15 +165,22 @@ namespace SignalARRR.Client {
                 methodInfo = methodInfo.MakeGenericMethod(arrType.ToArray());
             }
 
+            object result = null;
             if (methodInfo.ReturnType == typeof(void) || methodInfo.ReturnType == typeof(Task)) {
                 await InvokeHelper.InvokeVoidMethodAsync(instance, methodInfo, parameters);
-                return null;
             } else {
-                return await InvokeHelper.InvokeMethodAsync<object>(instance, methodInfo, parameters);
+                result = await InvokeHelper.InvokeMethodAsync<object>(instance, methodInfo, parameters);
             }
 
+            if (serverRequestMessage.CancellationGuid.HasValue) {
+                cancellationTokenSources.TryRemove(serverRequestMessage.CancellationGuid.Value, out var token);
+            }
 
+            return result;
         }
+
+
+        private ConcurrentDictionary<Guid, CancellationTokenSource> cancellationTokenSources = new ConcurrentDictionary<Guid, CancellationTokenSource>();
 
         private async Task<object[]> BuildExecuteMethodParameters(MethodInfo methodInfo, IEnumerable<object> parameters, CancellationToken cancellation = default) {
 
@@ -285,6 +298,16 @@ namespace SignalARRR.Client {
             }
 
             return message;
+        }
+
+        public void CancelTokenFromServer(ServerRequestMessage requestMessage) {
+
+            if (requestMessage.CancellationGuid.HasValue) {
+                if (cancellationTokenSources.TryRemove(requestMessage.CancellationGuid.Value, out var token)) {
+                    token.Cancel();
+                }
+            }
+
         }
     }
 }

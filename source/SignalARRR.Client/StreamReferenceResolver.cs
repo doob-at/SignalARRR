@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Reflectensions;
 using SignalARRR.Client.ExtensionMethods;
+using SignalARRR.RemoteReferenceTypes;
 
 namespace SignalARRR.Client {
     public class StreamReferenceResolver {

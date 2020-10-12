@@ -12,5 +12,7 @@
 
         public static string ChallengeAuthentication { get; } = "ChallengeAuthentication";
         public static string InvokeServerMessage { get; set; } = "InvokeServerMessage";
+
+        public static string CancelTokenFromServer { get; set; } = "CancelTokenFromServer";
     }
 }
