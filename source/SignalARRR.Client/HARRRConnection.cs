@@ -26,16 +26,19 @@ namespace SignalARRR.Client {
 
             this.On<ServerRequestMessage>(MethodNames.CancelTokenFromServer, (requestMessage) => _harrrContext.MessageHandler.CancelTokenFromServer(requestMessage));
 
-
+#pragma warning disable 4014
             this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest,
                  (requestMessage) => {
+
                      _harrrContext.MessageHandler.InvokeServerRequest(requestMessage);
                  });
 
             this.On<ServerRequestMessage>(MethodNames.InvokeServerMessage,
                  (requestMessage) => {
                      _harrrContext.MessageHandler.InvokeServerMessage(requestMessage);
+
                  });
+#pragma warning restore 4014
         }
 
 
