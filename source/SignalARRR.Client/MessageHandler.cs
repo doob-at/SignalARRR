@@ -25,7 +25,7 @@ using SignalARRR.RemoteReferenceTypes;
 namespace SignalARRR.Client {
     public class MessageHandler {
         private readonly HARRRContext _harrrContext;
-        private ISignalARRRClientMethodsCollection MethodsCollection { get; } = new SignalARRRClientMethodsCollection();
+        private ISignalARRRClientMethodsCollection MethodsCollection { get; set; } = new SignalARRRClientMethodsCollection();
 
         public MessageHandler(HARRRContext harrrContext) {
             _harrrContext = harrrContext;
@@ -114,7 +114,11 @@ namespace SignalARRR.Client {
             }
         }
 
-        
+        public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
+            MethodsCollection = methodsCollection;
+        }
+
+
 
 
         private async Task SendResponse(Guid id, object payload, string error) {

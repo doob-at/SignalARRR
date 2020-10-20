@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Reflection;
 
 namespace SignalARRR.Client {
-    internal interface ISignalARRRClientMethodsCollection {
+    public interface ISignalARRRClientMethodsCollection {
         void AddMethod(string name, MethodInfo methodInfo);
         void AddMethod<T>(string name, MethodInfo methodInfo, Func<T> factory = null);
         MethodCallInfo GetMethod(string clientMessageMethod);
     }
 
-    internal class SignalARRRClientMethodsCollection : ISignalARRRClientMethodsCollection  {
+    public class SignalARRRClientMethodsCollection : ISignalARRRClientMethodsCollection  {
 
         private readonly Dictionary<string, MethodCallInfo> _collection = new Dictionary<string, MethodCallInfo>();
 
@@ -33,7 +33,7 @@ namespace SignalARRR.Client {
 
     }
 
-    internal class MethodCallInfo {
+    public class MethodCallInfo {
 
         public MethodInfo MethodInfo { get; set; }
 

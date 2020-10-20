@@ -81,7 +81,9 @@ namespace SignalARRR.Client {
         }
 
 
-
+        public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
+            _harrrContext.MessageHandler.RegisterISignalARRRClientMethodsCollection(methodsCollection);
+        }
 
 
 
