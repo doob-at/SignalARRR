@@ -31,6 +31,7 @@ namespace SignalARRR.Client {
             return _collection.TryGetValue(name, out var methodInfo) ? methodInfo : null;
         }
 
+
     }
 
     public class MethodCallInfo {
