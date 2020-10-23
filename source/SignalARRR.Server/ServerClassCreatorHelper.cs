@@ -34,7 +34,9 @@ namespace SignalARRR.Server {
             if (cancellationToken != CancellationToken.None) {
                 msg.CancellationGuid = Guid.NewGuid();
                 cancellationToken.Register(() => {
+#pragma warning disable 4014
                     _clientContext.CancelToken(msg.CancellationGuid.Value);
+#pragma warning restore 4014
                 });
             }
 
@@ -56,7 +58,9 @@ namespace SignalARRR.Server {
             var msg = new ServerRequestMessage(methodName, preparedArguments);
             if (cancellationToken != CancellationToken.None) {
                 msg.CancellationGuid = Guid.NewGuid();
+#pragma warning disable 4014
                 cancellationToken.Register(() => _clientContext.CancelToken(msg.CancellationGuid.Value));
+#pragma warning restore 4014
             }
             msg.GenericArguments = genericArguments;
             using var serviceProviderScope = _clientContext.ServiceProvider.CreateScope();
