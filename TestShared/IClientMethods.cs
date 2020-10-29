@@ -32,5 +32,8 @@ namespace TestShared {
         IncidentClass TestExpandableObject(IncidentClass expandableObject);
 
         Task<string> Wait(int seconds, CancellationToken cancellationToken);
+
+        string GetByGenericId(Guid id);
+        string GetById(string id);
     }
 }

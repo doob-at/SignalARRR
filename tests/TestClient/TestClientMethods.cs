@@ -129,6 +129,16 @@ namespace TestClient {
             
         }
 
+        public string GetByGenericId(Guid id) {
+            Console.WriteLine(id.ToString());
+            return id.ToString();
+        }
+
+        public string GetById(string id) {
+            Console.WriteLine(id);
+            return id;
+        }
+
         public string GetName() {
             return $"{Environment.MachineName}\\{Environment.UserName}";
         }
