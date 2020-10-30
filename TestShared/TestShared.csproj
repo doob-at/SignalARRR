@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Reflectensions" Version="4.6.0" />
+    <PackageReference Include="System.Threading.Channels" Version="4.7.1" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Reference Include="System.Threading.Channels">
+      <HintPath>..\tests\TestClient_FullFramework\bin\Debug\System.Threading.Channels.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

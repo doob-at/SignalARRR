@@ -18,6 +18,8 @@ trigger:
   branches:
     include:
       - develop
+      
+pr: none
 
 stages:
   - stage: windows_latest

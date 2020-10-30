@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Reflectensions.HelperClasses;
+using SignalARRR.CodeGenerator;
 using SignalARRR.Server.ExtensionMethods;
 
 namespace SignalARRR.Server {
@@ -33,6 +34,7 @@ namespace SignalARRR.Server {
 
         internal IServiceProvider ServiceProvider { get; }
 
+        public Uri ConnectedTo { get; }
         //private string AuthData { get; set; }
         //private IAuthenticator Authenticator { get; }
 
@@ -45,7 +47,9 @@ namespace SignalARRR.Server {
             HARRRType = hub.GetType();
             
             RemoteIp = hubCallerContext.GetHttpContext().Connection.RemoteIpAddress;
-            
+            var connectedToBuilder = new UriBuilder(hubCallerContext.GetHttpContext().Request.GetDisplayUrl());
+            connectedToBuilder.Query = null;
+            ConnectedTo = connectedToBuilder.Uri;
 
             foreach (var (key, value) in hubCallerContext.GetHttpContext().Request.Headers)
             {
@@ -123,6 +127,22 @@ namespace SignalARRR.Server {
 
             var authentication = new SignalARRRAuthentication(ServiceProvider);
             return await authentication.Authorize(this, res, methodInfo);
+        }
+
+
+        public T GetTypedMethods<T>(string nameSpace = null) {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorHelper(this), nameSpace);
+            return instance;
+        }
+
+        public void ProxyToHttpContext<T>( HttpContext httpContext, string nameSpace, Action<T> action) {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorProxyHelper(this, httpContext), nameSpace);
+            action(instance);
+        }
+
+        public void ProxyToHttpContext<T>(HttpContext httpContext, Action<T> action) {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorProxyHelper(this, httpContext), null);
+            action(instance);
         }
     }
 

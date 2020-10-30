@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using SignalARRR.Server;
 
 namespace TestServer {
-    [Authorize(Roles = "testrole")]
+    
     public partial class TestHub : HARRR {
 
 

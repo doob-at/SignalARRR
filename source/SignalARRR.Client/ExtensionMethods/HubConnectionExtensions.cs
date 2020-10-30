@@ -1,24 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.DependencyInjection;
 using Reflectensions.ExtensionMethods;
 
 namespace SignalARRR.Client.ExtensionMethods {
     public static class HubConnectionExtensions {
 
-        public static Uri GetResponseUri(this HubConnection hubConnection) {
+        public static IServiceProvider GetServiceProvider(this HubConnection hubConnection) {
 
             var serviceProvider = (IServiceProvider)hubConnection.GetType().GetField("_serviceProvider", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(hubConnection);
-            var endPoint = serviceProvider.GetRequiredService<EndPoint>();
-            var endpointUri = endPoint.GetPropertyValue<Uri>("Uri");
-            return new Uri($"{endpointUri}/response");
+            return serviceProvider;
 
         }
 

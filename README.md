@@ -13,5 +13,5 @@ There is a Server Part, a .Net Client and a Typescript Client, which implements 
 
 Library is still work in Progress!
 
-More documentation is comming...
+More documentation is comming soon...
 

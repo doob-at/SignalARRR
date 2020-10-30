@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using SignalARRR.Constants;
+using SignalARRR.RemoteReferenceTypes;
 
 namespace SignalARRR.Server.ExtensionMethods {
     public static class ClientContextExtensions {
@@ -17,10 +19,34 @@ namespace SignalARRR.Server.ExtensionMethods {
 
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
+            
             var msg = new ServerRequestMessage(method, arguments);
             var res = await harrrContext.InvokeClientAsync<TResult>(clientContext.Id, msg, cancellationToken);
             return new ClientCollectionResult<TResult>(clientContext.Id, res);
 
+        }
+
+        public static async Task CancelToken(this ClientContext clientContext, Guid tokenReference) {
+
+            using var serviceProviderScope = clientContext.ServiceProvider.CreateScope();
+
+            var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
+            var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
+
+            var msg = new ServerRequestMessage(MethodNames.CancelTokenFromServer, tokenReference);
+
+            await harrrContext.CancelToken(clientContext.Id, tokenReference);
+        }
+
+        public static async Task Proxy(this ClientContext clientContext, string method, object[] arguments, HttpContext httpContext) {
+
+            using var serviceProviderScope = clientContext.ServiceProvider.CreateScope();
+
+            var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
+            var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
+            var msg = new ServerRequestMessage(method, arguments);
+            await harrrContext.ProxyClientAsync(clientContext.Id, msg, httpContext);
+            
         }
 
         //public static async Task<string> Challenge(this ClientContext clientContext) {
@@ -52,6 +78,7 @@ namespace SignalARRR.Server.ExtensionMethods {
             foreach (var context in clientContext) {
 
                 try {
+                    
                     result = await context.Invoke<TResult>(method, arguments, cancellationToken);
                     break;
                 } catch (Exception e) {
@@ -63,7 +90,11 @@ namespace SignalARRR.Server.ExtensionMethods {
             return result;
         }
 
-        
+
+        public static T InvokeSingle<T>(this IEnumerable<ClientContext> clientContext) {
+
+            return default;
+        }
 
         public static IEnumerable<ClientContext> WithAttribute(this IEnumerable<ClientContext> clientContexts, string key) {
             return clientContexts.Where(c => c.Attributes.Has(key));

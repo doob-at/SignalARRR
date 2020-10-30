@@ -8,6 +8,8 @@ namespace SignalARRR {
         public Guid Id { get; set; }
         public string Method { get; set; }
         public object[] Arguments { get; set; }
+        public string[] GenericArguments { get; set; }
+        public Guid? CancellationGuid { get; set; }
 
         public ServerRequestMessage()
         {

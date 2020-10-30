@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SignalARRR;
+using SignalARRR.Client;
 
 namespace TestClient {
     public class ChannelCounter {

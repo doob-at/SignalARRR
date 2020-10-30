@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Reflectensions.ExtensionMethods;
 using SignalARRR.Attributes;
+using SignalARRR.CodeGenerator;
 
 namespace SignalARRR.Server.ExtensionMethods {
     public static class ServiceCollectionExtensions {
@@ -14,11 +15,15 @@ namespace SignalARRR.Server.ExtensionMethods {
 
             AddSignalARRRMethods(serviceCollection, serverOptions);
             serviceCollection.AddSingleton<ServerRequestManager>();
+            serviceCollection.AddSingleton<ServerPushStreamManager>();
             serviceCollection.AddSingleton<InMemoryHARRRClientManager>();
             serviceCollection.AddSingleton<IHARRRClientManager>(sp => sp.GetRequiredService<InMemoryHARRRClientManager>());
             serviceCollection.AddSingleton<ClientManager>(sp => new ClientManager(sp.GetRequiredService<IHARRRClientManager>()));
             serviceCollection.AddTransient(typeof(ClientContextDispatcher<>));
 
+            foreach (var type in serverOptions.PreBuiltClientMethods) {
+                ClassCreator.CreateTypeFromInterface(type);
+            }
             return serviceCollection;
         }
 

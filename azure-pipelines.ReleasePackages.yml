@@ -15,9 +15,9 @@
 # ------------------------------------------------------------------------------
 
 trigger:
-  branches:
-    include:
-      - master
+  - master
+  
+pr: none
 
 stages:
   - stage: windows_latest
@@ -26,12 +26,12 @@ stages:
     pool:
       vmImage: 'windows-latest'
     jobs:
-      - job: Test
-        displayName: 'Test'
+      - job: PushToNuget
+        displayName: 'Push to Nuget'
         dependsOn: [  ]
         steps:
           - task: CmdLine@2
             inputs:
-              script: './build.cmd Test --skip'
+              script: './build.cmd PushNuget'
             env:
               AccessToken: $(System.AccessToken)

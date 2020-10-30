@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace SignalARRR {
+namespace SignalARRR.Client {
 
     public static class HARRRConnectionExtensions {
         private static IDisposable On(
@@ -2023,7 +2023,9 @@ namespace SignalARRR {
                 throw new ArgumentNullException(nameof(harrrConnection));
             ChannelReader<object> inputChannel = await harrrConnection.StreamAsChannelCoreAsync(methodName, typeof(TResult), args, cancellationToken);
             Channel<TResult> outputChannel = Channel.CreateUnbounded<TResult>();
+#pragma warning disable 4014
             RunChannel();
+#pragma warning restore 4014
             return outputChannel.Reader;
 
             async Task RunChannel() {

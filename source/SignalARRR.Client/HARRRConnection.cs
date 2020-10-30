@@ -1,112 +1,95 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Converters;
 using Reflectensions.ExtensionMethods;
-using Reflectensions.JsonConverters;
-using SignalARRR.Client;
 using SignalARRR.Client.ExtensionMethods;
+using SignalARRR.CodeGenerator;
 using SignalARRR.Constants;
 
-namespace SignalARRR {
+namespace SignalARRR.Client {
     public class HARRRConnection {
         private HubConnection HubConnection { get; }
-        private HARRRConnectionOptions Options { get; }
         private ConcurrentDictionary<string, Delegate> ServerRequestHandlers { get; } = new ConcurrentDictionary<string, Delegate>();
+        private HARRRContext _harrrContext { get; }
 
-        private Func<Task<string>> AccessTokenProvider { get; }
+        public HARRRConnection(HARRRContext harrrContext) {
 
-        private readonly Lazy<Reflectensions.Json> lazyJson = new Lazy<Reflectensions.Json>(() => new Reflectensions.Json()
-            .RegisterJsonConverter<StringEnumConverter>()
-            .RegisterJsonConverter<DefaultDictionaryConverter>()
-        );
-
-        public Reflectensions.Json Convert => lazyJson.Value;
-
-        private HARRRConnection(HubConnection hubConnection, HARRRConnectionOptions options = null) {
-
-            Options = options ?? new HARRRConnectionOptions();
-
-            HubConnection = hubConnection;
-            AccessTokenProvider = hubConnection.GetAccessTokenProvider() ?? (() => Task.FromResult<string>(null));
-
-            this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication, requestMessage => {
-
-                var msg = new ClientResponseMessage(requestMessage.Id);
-                msg.PayLoad = AccessTokenProvider().GetAwaiter().GetResult();
-
-                HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
-            });
-
-            this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest, (requestMessage) => {
-
-                var msg = new ClientResponseMessage(requestMessage.Id);
-
-                if (ServerRequestHandlers.TryGetValue(requestMessage.Method, out var handler)) {
-
-                    var pars = handler.Method.GetParameters();
-                    var arguments = new List<object>();
-                    for (var i = 0; i < pars.Length; i++) {
-                        var pInfo = pars[i];
-                        var obj = requestMessage.Arguments[i];
-                        if (obj is JsonElement je) {
-                            obj = Convert.ToObject(je.ToString(), pInfo.ParameterType);
-                        } 
-                        arguments.Add(obj.To(pInfo.ParameterType));
-                    }
-
-                    var argsArray = arguments.ToArray();
-
-                    var res = handler.DynamicInvoke(argsArray);
-                    msg.PayLoad = res;
-
-                } else {
-                    msg.ErrorMessage = $"Method '{requestMessage.Method}' not Found";
-                }
-
-                if (Options.HttpResponse) {
-                    var payload = Convert.ToJson(msg);
-                    var url = HubConnection.GetResponseUri();
-                    var httpClient = new HttpClient();
-                    httpClient.PostAsync(url, new StringContent(payload));
-                } else {
-                    HubConnection.SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { msg });
-                }
+            _harrrContext = harrrContext;
+            HubConnection = harrrContext.GetHubConnection();
 
 
-            });
+            this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication, (requestMessage) => _harrrContext.MessageHandler.ChallengeAuthentication(requestMessage));
+
+            this.On<ServerRequestMessage>(MethodNames.CancelTokenFromServer, (requestMessage) => _harrrContext.MessageHandler.CancelTokenFromServer(requestMessage));
+
+#pragma warning disable 4014
+            this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest,
+                 (requestMessage) => {
+
+                     _harrrContext.MessageHandler.InvokeServerRequest(requestMessage);
+                 });
+
+            this.On<ServerRequestMessage>(MethodNames.InvokeServerMessage,
+                 (requestMessage) => {
+                     _harrrContext.MessageHandler.InvokeServerMessage(requestMessage);
+
+                 });
+#pragma warning restore 4014
         }
 
-        public HARRRConnection RegisterClientMethod(MethodInfo method, object target, string prefix = null) {
 
-            var name = $"{prefix}{method.Name}";
-            ServerRequestHandlers.TryAdd(name, DelegateHelper.CreateDelegate(method, target));
+        public HARRRConnection PreBuiltTypedMethods<T>() {
+            ClassCreator.CreateTypeFromInterface<T>();
             return this;
         }
 
-        public HARRRConnection RegisterClientMethods(object target, string prefix = null) {
-
-            var methods = target.GetType().GetMethods();
-            foreach (var methodInfo in methods) {
-                
-                RegisterClientMethod(methodInfo, target, prefix);
-            }
-            
-            return this;
+        public T GetTypedMethods<T>(string nameSpace = null) {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ClientClassCreatorHelper(this), nameSpace);
+            return instance;
         }
 
 
-      
+        public void RegisterClientMethods<TClass>(string prefix = null) where TClass : class {
+            _harrrContext.MessageHandler.RegisterMethods<TClass>(prefix);
+        }
+        public void RegisterClientMethods<TClass>(TClass instance, string prefix = null) where TClass : class {
+            _harrrContext.MessageHandler.RegisterMethods<TClass>(instance, prefix);
+        }
+        public void RegisterClientMethods<TClass>(Func<TClass> factory, string prefix = null) where TClass : class {
+            _harrrContext.MessageHandler.RegisterMethods<TClass>(factory, prefix);
+        }
+
+        public void RegisterClientMethods<TInterface, TClass>(string prefix = null) where TClass : class, TInterface {
+            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(prefix);
+        }
+        public void RegisterClientMethods<TInterface, TClass>(TClass instance, string prefix = null) where TClass : class, TInterface {
+            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(instance, prefix);
+        }
+        public void RegisterClientMethods<TInterface, TClass>(Func<TClass> factory, string prefix = null) where TClass : class, TInterface {
+            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(factory, prefix);
+        }
+
+        public void RegisterClientMethods(Type interfaceType, Type instanceType, string prefix = null) {
+            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, prefix);
+        }
+        public void RegisterClientMethods(Type interfaceType, Type instanceType, object instance, string prefix = null) {
+            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, instance, prefix);
+        }
+        public void RegisterClientMethods(Type interfaceType, Type instanceType, Func<object> factory, string prefix = null) {
+            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, factory, prefix);
+        }
+
+
+        public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
+            _harrrContext.MessageHandler.RegisterISignalARRRClientMethodsCollection(methodsCollection);
+        }
+
+
+
         public IDisposable On(string methodName, Type[] parameterTypes, Func<object[], object, Task> handler, object state) {
             return HubConnection.On(methodName, parameterTypes, handler, state);
         }
@@ -125,7 +108,7 @@ namespace SignalARRR {
             ServerRequestHandlers.TryAdd(methodName, handler);
         }
 
-        public void OnServerRequest<TIn1,TIn2>(string methodName, Func<TIn1, TIn2, object> handler) {
+        public void OnServerRequest<TIn1, TIn2>(string methodName, Func<TIn1, TIn2, object> handler) {
 
             ServerRequestHandlers.TryAdd(methodName, handler);
         }
@@ -140,65 +123,84 @@ namespace SignalARRR {
             ServerRequestHandlers.TryAdd(methodName, handler);
         }
 
+        public async Task<object> InvokeCoreAsync(ClientRequestMessage message, Type returnType, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
+            return await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { message }, cancellationToken);
+        }
+
+        public async Task InvokeCoreAsync(ClientRequestMessage message, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
+            await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageOnServer, new object[] { message }, cancellationToken);
+        }
 
         public async Task<object> InvokeCoreAsync(string methodName, Type returnType, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
-            return HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { msg }, cancellationToken);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
+            return await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { msg }, cancellationToken);
         }
 
         public async Task InvokeCoreAsync(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageOnServer, new object[] { msg }, cancellationToken);
         }
 
+        public async Task<TResult> InvokeCoreAsync<TResult>(ClientRequestMessage message, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
+            var resultMsg = await HubConnection.InvokeCoreAsync<TResult>(MethodNames.InvokeMessageResultOnServer, new object[] { message }, cancellationToken);
+            return resultMsg;
+        }
         public async Task<TResult> InvokeCoreAsync<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             var resultMsg = await HubConnection.InvokeCoreAsync<TResult>(MethodNames.InvokeMessageResultOnServer, new object[] { msg }, cancellationToken);
             return resultMsg;
         }
 
+        public Task SendCoreAsync(ClientRequestMessage message, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
+            return HubConnection.SendCoreAsync(MethodNames.SendMessageToServer, new object[] { message }, cancellationToken);
+        }
+
         public Task SendCoreAsync(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.SendCoreAsync(MethodNames.SendMessageToServer, new object[] { msg }, cancellationToken);
         }
 
+        public IAsyncEnumerable<TResult> StreamAsyncCore<TResult>(ClientRequestMessage message, CancellationToken cancellationToken = default) {
+            message = message.WithAuthorization(_harrrContext.AccessTokenProvider);
+            return HubConnection.StreamAsyncCore<TResult>(MethodNames.StreamMessageFromServer, new object[] { message }, cancellationToken);
+        }
+
         public IAsyncEnumerable<TResult> StreamAsyncCore<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.StreamAsyncCore<TResult>(MethodNames.StreamMessageFromServer, new object[] { msg }, cancellationToken);
         }
 
         public Task<ChannelReader<object>> StreamAsChannelCoreAsync(string methodName, Type returnType, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.StreamAsChannelCoreAsync(MethodNames.StreamMessageFromServer, returnType, new object[] { msg }, cancellationToken);
         }
 
         public async Task<ChannelReader<TResult>> StreamAsChannelCoreAsync<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return await HubConnection.StreamAsChannelCoreAsync<TResult>(MethodNames.StreamMessageFromServer, new object[] { msg }, cancellationToken);
         }
 
 
-        
+
 
         public HubConnection AsSignalRHubConnection() {
             return HubConnection;
         }
 
         public static HARRRConnection Create(Action<HubConnectionBuilder> builder, Action<HARRRConnectionOptionsBuilder> optionsBuilder = null) {
-            return Create(builder?.InvokeAction()?.Build(), optionsBuilder?.InvokeAction());
+            var intermediateBuilder = builder.InvokeAction();
+            var hubConnection = intermediateBuilder.Build();
+            return Create(hubConnection, optionsBuilder);
         }
 
         public static HARRRConnection Create(HubConnection hubConnection, Action<HARRRConnectionOptionsBuilder> optionsBuilder = null) {
-            return Create(hubConnection, optionsBuilder.InvokeAction());
+            var harrrContext = new HARRRContext(hubConnection.GetServiceProvider(), optionsBuilder?.InvokeAction() ?? new HARRRConnectionOptionsBuilder());
+            return new HARRRConnection(harrrContext);
         }
-
-        public static HARRRConnection Create(HubConnection hubConnection, HARRRConnectionOptions options = null) {
-            return new HARRRConnection(hubConnection, options);
-        }
-
-
-        
-
 
         #region HubConnectionDecorator
 

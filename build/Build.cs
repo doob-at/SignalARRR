@@ -2,18 +2,13 @@
 using System.Linq;
 using System.Text.Json;
 using Nuke.Common;
-using Nuke.Common.CI;
-using Nuke.Common.CI.AzurePipelines;
-using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.Git;
 using Nuke.Common.Tools.GitVersion;
-using Nuke.Common.Tools.NuGet;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
@@ -24,22 +19,22 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 [UnsetVisualStudioEnvironmentVariables]
 
 
-[AzurePipelines(
-    "PushTestPackages",
-    AzurePipelinesImage.WindowsLatest,
-    InvokedTargets = new []{ nameof(PushAzure)},
-    TriggerBranchesInclude = new []{ "develop"},
-    ImportSystemAccessTokenAs = nameof(AccessToken),
-    NonEntryTargets = new []{ nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack)}
-)]
-[AzurePipelines(
-    "ReleasePackages",
-    AzurePipelinesImage.WindowsLatest,
-    InvokedTargets = new[] { nameof(Test) },
-    TriggerBranchesInclude = new[] { "master" },
-    ImportSystemAccessTokenAs = nameof(AccessToken),
-    NonEntryTargets = new[] { nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack) }
-)]
+//[AzurePipelines(
+//    "PushTestPackages",
+//    AzurePipelinesImage.WindowsLatest,
+//    InvokedTargets = new []{ nameof(PushAzure)},
+//    TriggerBranchesInclude = new []{ "develop"},
+//    ImportSystemAccessTokenAs = nameof(AccessToken),
+//    NonEntryTargets = new []{ nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack)}
+//)]
+//[AzurePipelines(
+//    "ReleasePackages",
+//    AzurePipelinesImage.WindowsLatest,
+//    InvokedTargets = new[] { nameof(Test) },
+//    TriggerBranchesInclude = new[] { "master" },
+//    ImportSystemAccessTokenAs = nameof(AccessToken),
+//    NonEntryTargets = new[] { nameof(Clean), nameof(Restore), nameof(Compile), nameof(Pack) }
+//)]
 
 class Build : NukeBuild {
     /// Support plugins are available for:
@@ -61,6 +56,9 @@ class Build : NukeBuild {
 
     [Parameter("Access Token")]
     public string AccessToken { get; set; }
+
+    [Parameter("Nuget API Key")]
+    public string NugetApiKey { get; set; }
 
     AbsolutePath SourceDirectory => RootDirectory / "source";
     AbsolutePath TestsDirectory => RootDirectory / "tests";
@@ -161,5 +159,22 @@ class Build : NukeBuild {
                 });
         });
 
-    
+    Target PushNuget => _ => _
+        .Requires(() => NugetApiKey)
+        .DependsOn(Pack)
+        .Executes(() => {
+            
+            GlobFiles(OutputDirectory, "*.nupkg")
+                .NotEmpty()
+                .Where(x => !x.EndsWith("symbols.nupkg"))
+                .ForEach(x => {
+                    DotNetNuGetPush(s => s
+                        .SetTargetPath(x)
+                        .SetSource("https://api.nuget.org/v3/index.json")
+                        .SetApiKey(NugetApiKey)
+                    );
+                });
+        });
+
+
 }

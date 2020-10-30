@@ -17,7 +17,7 @@ namespace TestServer.Controllers {
 
 
         [HttpGet]
-        public async Task<IActionResult> GetConnectedClients() {
+        public IActionResult GetConnectedClients() {
 
             var cls = ClientManager.GetAllClients();
             return Ok(cls);

@@ -8,9 +8,9 @@ namespace SignalARRR {
         public string Method { get; set; }
         public string Authorization { get; set; }
         public object[] Arguments { get; set; }
+        public string[] GenericArguments { get; set; }
 
-
-        private ClientRequestMessage() { }
+        public ClientRequestMessage() { }
 
         public ClientRequestMessage(string methodName) {
             Method = methodName;
