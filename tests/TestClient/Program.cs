@@ -54,11 +54,13 @@ namespace TestClient {
                 );
 
             
+            connection.RegisterType<ISharedMethods, MySharedMethods>();
 
-            connection.RegisterClientMethods<PS>();
+
+            //connection.RegisterClientMethods<PS>();
 
 
-            connection.RegisterClientMethods<ITestClientMethods, TestClientMethods>();
+            //connection.RegisterClientMethods<ITestClientMethods, TestClientMethods>();
 
             await connection.StartAsync();
 

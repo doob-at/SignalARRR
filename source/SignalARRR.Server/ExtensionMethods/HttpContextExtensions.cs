@@ -25,12 +25,6 @@ namespace SignalARRR.Server.ExtensionMethods {
 
         }
 
-        public static void ProxyFromHARRRClient<TInterface>(this HttpContext httpContext, ClientContext clientContext, string @namespace,
-            Action<TInterface> action) {
-
-            clientContext.ProxyToHttpContext(httpContext, @namespace, action);
-
-        }
 
     }
 }

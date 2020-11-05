@@ -130,18 +130,13 @@ namespace SignalARRR.Server {
         }
 
 
-        public T GetTypedMethods<T>(string nameSpace = null) {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorHelper(this), nameSpace);
+        public T GetTypedMethods<T>() {
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorHelper(this));
             return instance;
         }
 
-        public void ProxyToHttpContext<T>( HttpContext httpContext, string nameSpace, Action<T> action) {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorProxyHelper(this, httpContext), nameSpace);
-            action(instance);
-        }
-
         public void ProxyToHttpContext<T>(HttpContext httpContext, Action<T> action) {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorProxyHelper(this, httpContext), null);
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorProxyHelper(this, httpContext));
             action(instance);
         }
     }

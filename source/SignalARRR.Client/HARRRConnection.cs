@@ -11,7 +11,7 @@ using SignalARRR.CodeGenerator;
 using SignalARRR.Constants;
 
 namespace SignalARRR.Client {
-    public class HARRRConnection {
+    public partial class HARRRConnection {
         private HubConnection HubConnection { get; }
         private ConcurrentDictionary<string, Delegate> ServerRequestHandlers { get; } = new ConcurrentDictionary<string, Delegate>();
         private HARRRContext _harrrContext { get; }
@@ -42,51 +42,51 @@ namespace SignalARRR.Client {
         }
 
 
-        public HARRRConnection PreBuiltTypedMethods<T>() {
-            ClassCreator.CreateTypeFromInterface<T>();
-            return this;
-        }
+        //public HARRRConnection PreBuiltTypedMethods<T>() {
+        //    ClassCreator.CreateTypeFromInterface<T>();
+        //    return this;
+        //}
 
         public T GetTypedMethods<T>(string nameSpace = null) {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ClientClassCreatorHelper(this), nameSpace);
+            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ClientClassCreatorHelper(this));
             return instance;
         }
 
 
-        public void RegisterClientMethods<TClass>(string prefix = null) where TClass : class {
-            _harrrContext.MessageHandler.RegisterMethods<TClass>(prefix);
-        }
-        public void RegisterClientMethods<TClass>(TClass instance, string prefix = null) where TClass : class {
-            _harrrContext.MessageHandler.RegisterMethods<TClass>(instance, prefix);
-        }
-        public void RegisterClientMethods<TClass>(Func<TClass> factory, string prefix = null) where TClass : class {
-            _harrrContext.MessageHandler.RegisterMethods<TClass>(factory, prefix);
-        }
+        //public void RegisterClientMethods<TClass>(string prefix = null) where TClass : class {
+        //    _harrrContext.MessageHandler.RegisterMethods<TClass>(prefix);
+        //}
+        //public void RegisterClientMethods<TClass>(TClass instance, string prefix = null) where TClass : class {
+        //    _harrrContext.MessageHandler.RegisterMethods<TClass>(instance, prefix);
+        //}
+        //public void RegisterClientMethods<TClass>(Func<TClass> factory, string prefix = null) where TClass : class {
+        //    _harrrContext.MessageHandler.RegisterMethods<TClass>(factory, prefix);
+        //}
 
-        public void RegisterClientMethods<TInterface, TClass>(string prefix = null) where TClass : class, TInterface {
-            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(prefix);
-        }
-        public void RegisterClientMethods<TInterface, TClass>(TClass instance, string prefix = null) where TClass : class, TInterface {
-            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(instance, prefix);
-        }
-        public void RegisterClientMethods<TInterface, TClass>(Func<TClass> factory, string prefix = null) where TClass : class, TInterface {
-            _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(factory, prefix);
-        }
+        //public void RegisterClientMethods<TInterface, TClass>(string prefix = null) where TClass : class, TInterface {
+        //    _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(prefix);
+        //}
+        //public void RegisterClientMethods<TInterface, TClass>(TClass instance, string prefix = null) where TClass : class, TInterface {
+        //    _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(instance, prefix);
+        //}
+        //public void RegisterClientMethods<TInterface, TClass>(Func<TClass> factory, string prefix = null) where TClass : class, TInterface {
+        //    _harrrContext.MessageHandler.RegisterMethods<TInterface, TClass>(factory, prefix);
+        //}
 
-        public void RegisterClientMethods(Type interfaceType, Type instanceType, string prefix = null) {
-            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, prefix);
-        }
-        public void RegisterClientMethods(Type interfaceType, Type instanceType, object instance, string prefix = null) {
-            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, instance, prefix);
-        }
-        public void RegisterClientMethods(Type interfaceType, Type instanceType, Func<object> factory, string prefix = null) {
-            _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, factory, prefix);
-        }
+        //public void RegisterClientMethods(Type interfaceType, Type instanceType, string prefix = null) {
+        //    _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, prefix);
+        //}
+        //public void RegisterClientMethods(Type interfaceType, Type instanceType, object instance, string prefix = null) {
+        //    _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, instance, prefix);
+        //}
+        //public void RegisterClientMethods(Type interfaceType, Type instanceType, Func<object> factory, string prefix = null) {
+        //    _harrrContext.MessageHandler.RegisterMethods(interfaceType, instanceType, factory, prefix);
+        //}
 
 
-        public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
-            _harrrContext.MessageHandler.RegisterISignalARRRClientMethodsCollection(methodsCollection);
-        }
+        //public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
+        //    _harrrContext.MessageHandler.RegisterISignalARRRClientMethodsCollection(methodsCollection);
+        //}
 
 
 

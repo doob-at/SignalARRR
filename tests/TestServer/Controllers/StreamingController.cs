@@ -39,7 +39,7 @@ namespace TestServer.Controllers {
             var dict = new Dictionary<string, object>();
             dict["test"] = "TestValue";
 
-            HttpContext.ProxyFromHARRRClient<ITestClientMethods>(cl, "ClientTest", methods => methods.Invoke<DateTime>("comm", dict));
+            HttpContext.ProxyFromHARRRClient<ITestClientMethods>(cl, methods => methods.Invoke<DateTime>("comm", dict));
 
         }
 
@@ -57,7 +57,7 @@ namespace TestServer.Controllers {
             if (cl == null)
                 await this.HttpContext.NotFound();
 
-            var length = cl.GetTypedMethods<ITestClientMethods>("ClientTest").FileLength(filename, HttpContext.Request.Body);
+            var length = cl.GetTypedMethods<ITestClientMethods>().FileLength(filename, HttpContext.Request.Body);
 
             return Ok(length);
         }
@@ -76,7 +76,7 @@ namespace TestServer.Controllers {
             if (cl == null)
                 await this.HttpContext.NotFound();
 
-            var length = await cl.GetTypedMethods<ITestClientMethods>("ClientTest").Wait(seconds, HttpContext.RequestAborted);
+            var length = await cl.GetTypedMethods<ITestClientMethods>().Wait(seconds, HttpContext.RequestAborted);
 
             return Ok(length);
         }

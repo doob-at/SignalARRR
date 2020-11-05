@@ -56,7 +56,7 @@ namespace SignalARRR.CodeGenerator {
 
             var body = new StringBuilder();
             body.AppendLine(methodParameters.ToParamsArrayText("paramsArray"));
-            body.AppendLine($"var methodName = String.IsNullOrWhiteSpace(_nameSpace) ? \"{methodInfo.Name}\" : $\"{{_nameSpace}}.{methodInfo.Name}\";");
+            body.AppendLine($"var methodName = String.IsNullOrWhiteSpace(_nameSpace) ? \"{methodInfo.Name}\" : $\"{{_nameSpace}}|{methodInfo.Name}\";");
             body.AppendLine(genericArguments.ArrayBuilder);
 
             var invokeGenericArgument = (isTaskOfT || isStreamingMethod.IsStreamingType) ? methodInfo.ReturnType.GetGenericArguments().AsGenericArgumentsText() : methodInfo.ReturnType.AsGenericArgumentsText();
@@ -212,13 +212,13 @@ namespace SignalARRR.CodeGenerator {
             return new ClassCreator(type).Build();
         }
 
-        public static T CreateInstanceFromInterface<T>(ClassCreatorHelper classCreatorHelper, string @namespace) {
+        public static T CreateInstanceFromInterface<T>(ClassCreatorHelper classCreatorHelper) {
 
             var t = CreateTypeFromInterface<T>();
 
             var nargs = new List<object>();
 
-            nargs.Add(@namespace);
+            nargs.Add(typeof(T).FullName);
             nargs.Add(classCreatorHelper);
 
             var instance = (T)Activator.CreateInstance(t, nargs.ToArray());

@@ -31,7 +31,7 @@ namespace TestServer.Controllers {
             if (cl1 == null)
                 throw new Exception("No client found!");
 
-            HttpContext.ProxyFromHARRRClient(cl1, "ClientTest", action);
+            HttpContext.ProxyFromHARRRClient(cl1, action);
         }
         
 

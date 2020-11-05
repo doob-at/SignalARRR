@@ -5,9 +5,11 @@ using System.Reflection;
 namespace SignalARRR.Client {
     public interface ISignalARRRClientMethodsCollection {
         void AddMethod(string name, MethodInfo methodInfo);
-        void AddMethod<T>(string name, MethodInfo methodInfo, Func<T> factory = null);
+        void AddMethod<T>(Type interfaceType, MethodInfo methodInfo, Func<T> factory = null);
         MethodCallInfo GetMethod(string clientMessageMethod);
     }
+
+
 
     public class SignalARRRClientMethodsCollection : ISignalARRRClientMethodsCollection  {
 
@@ -20,10 +22,11 @@ namespace SignalARRR.Client {
             }
         }
 
-        public void AddMethod<T>(string name, MethodInfo methodInfo, Func<T> factory = null) {
-            if (!_collection.ContainsKey(name)) {
+        public void AddMethod<T>(Type interfaceType, MethodInfo methodInfo, Func<T> factory = null) {
+            var methodName = $"{interfaceType.FullName}.{methodInfo.Name}";
+            if (!_collection.ContainsKey(methodName)) {
                 var mci = new MethodCallInfo(methodInfo, factory);
-                _collection.Add(name, mci);
+                _collection.Add(methodName, mci);
             }
         }
 

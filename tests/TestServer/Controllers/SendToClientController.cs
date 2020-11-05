@@ -70,7 +70,7 @@ namespace TestServer.Controllers {
 
             var cl = ClientManager
                 .GetAllClients()
-                .FirstOrDefault()?.GetTypedMethods<ITestClientMethods>("ClientTest");
+                .FirstOrDefault()?.GetTypedMethods<ITestClientMethods>();
 
             if (cl == null)
                 return NotFound();
@@ -119,7 +119,7 @@ namespace TestServer.Controllers {
                 ["Child"] = 1
             };
 
-            cl1.GetTypedMethods<ITestClientMethods>("ClientTest").Complex1(ct);
+            cl1.GetTypedMethods<ITestClientMethods>().Complex1(ct);
             //InvokeScsmProxyClient(methods => methods.CreateObject(className, properties));
             return Ok();
         }
@@ -145,7 +145,7 @@ namespace TestServer.Controllers {
                 throw new Exception("No client found!");
 
 
-            var res = cl1.GetTypedMethods<ITestClientMethods>("ClientTest").TestExpandableObject(ct);
+            var res = cl1.GetTypedMethods<ITestClientMethods>().TestExpandableObject(ct);
             //InvokeScsmProxyClient(methods => methods.CreateObject(className, properties));
             return Ok(res);
         }

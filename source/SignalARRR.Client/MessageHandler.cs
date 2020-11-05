@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using Reflectensions;
@@ -27,6 +28,7 @@ namespace SignalARRR.Client {
         private readonly HARRRContext _harrrContext;
         private ISignalARRRClientMethodsCollection MethodsCollection { get; set; } = new SignalARRRClientMethodsCollection();
 
+        private ConcurrentDictionary<string, Delegate> RegisteredTypes = new ConcurrentDictionary<string, Delegate>();
         public MessageHandler(HARRRContext harrrContext) {
             _harrrContext = harrrContext;
         }
@@ -69,50 +71,76 @@ namespace SignalARRR.Client {
         }
 
 
-        public void RegisterMethods<TClass>(string prefix = null) where TClass : class {
-            RegisterMethods(typeof(TClass), typeof(TClass), prefix);
-        }
-        public void RegisterMethods<TClass>(TClass instance, string prefix = null) where TClass : class {
-            RegisterMethods(typeof(TClass), typeof(TClass), instance, prefix);
-        }
-        public void RegisterMethods<TClass>(Func<TClass> factory, string prefix = null) where TClass : class {
-            RegisterMethods(typeof(TClass), typeof(TClass), factory, prefix);
-        }
+        //public void RegisterMethods<TClass>(string prefix = null) where TClass : class {
+        //    RegisterMethods(typeof(TClass), typeof(TClass), prefix);
+        //}
+        //public void RegisterMethods<TClass>(TClass instance, string prefix = null) where TClass : class {
+        //    RegisterMethods(typeof(TClass), typeof(TClass), instance, prefix);
+        //}
+        //public void RegisterMethods<TClass>(Func<TClass> factory, string prefix = null) where TClass : class {
+        //    RegisterMethods(typeof(TClass), typeof(TClass), factory, prefix);
+        //}
 
-        public void RegisterMethods<TInterface, TClass>(string prefix = null) where TClass : class, TInterface {
-            RegisterMethods(typeof(TInterface), typeof(TClass), prefix);
-        }
-        public void RegisterMethods<TInterface, TClass>(TClass instance, string prefix = null) where TClass : class, TInterface {
-            RegisterMethods(typeof(TInterface), typeof(TClass), instance, prefix);
-        }
-        public void RegisterMethods<TInterface, TClass>(Func<TClass> factory, string prefix = null) where TClass : class, TInterface {
-            RegisterMethods(typeof(TInterface), typeof(TClass), factory, prefix);
-        }
+        //public void RegisterMethods<TInterface, TClass>(string prefix = null) where TClass : class, TInterface {
+        //    RegisterMethods(typeof(TInterface), typeof(TClass), prefix);
+        //}
+        //public void RegisterMethods<TInterface, TClass>(TClass instance, string prefix = null) where TClass : class, TInterface {
+        //    RegisterMethods(typeof(TInterface), typeof(TClass), instance, prefix);
+        //}
+        //public void RegisterMethods<TInterface, TClass>(Func<TClass> factory, string prefix = null) where TClass : class, TInterface {
+        //    RegisterMethods(typeof(TInterface), typeof(TClass), factory, prefix);
+        //}
 
-        public void RegisterMethods(Type interfaceType, Type instanceType, string prefix = null) {
-            Func<object> factory = () => {
-                var fromServiceProvider = _harrrContext.GetHubConnection().GetServiceProvider().GetService(instanceType);
+        //public void RegisterMethods(Type interfaceType, Type instanceType, string prefix = null) {
+        //    Func<object> factory = () => {
+        //        var fromServiceProvider = _harrrContext.GetHubConnection().GetServiceProvider().GetService(instanceType);
+        //        if (fromServiceProvider != null) {
+        //            return fromServiceProvider;
+        //        }
+
+        //        return Activator.CreateInstance(instanceType);
+        //    };
+        //    RegisterMethods(interfaceType, instanceType, factory, prefix);
+        //}
+        //public void RegisterMethods(Type interfaceType, Type instanceType, object instance, string prefix = null) {
+        //    RegisterMethods(interfaceType, instanceType, () => instance, prefix);
+        //}
+        //public void RegisterMethods(Type interfaceType, Type instanceType, Func<object> factory, string prefix = null) {
+
+        //    var rootName = instanceType.GetCustomAttribute<MessageNameAttribute>()?.Name ?? prefix.ToNull() ?? instanceType.Name;
+        //    var methodsWithName = interfaceType.GetMethods().Select(m => (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
+        //    foreach (var (methodInfo, methodNameAttribute) in methodsWithName) {
+        //        var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
+        //        var concatNames = $"{rootName}.{methodName}";
+        //        MethodsCollection.AddMethod(interfaceType, methodInfo, factory);
+        //    }
+        //}
+
+
+        public void RegisterType<TInterface, TClass>() where TClass : class, TInterface {
+            
+            Func<IServiceProvider, TClass> factory = (sp) => {
+                var fromServiceProvider = sp.GetService<TClass>();
                 if (fromServiceProvider != null) {
                     return fromServiceProvider;
                 }
 
-                return Activator.CreateInstance(instanceType);
+                return Activator.CreateInstance<TClass>();
             };
-            RegisterMethods(interfaceType, instanceType, factory, prefix);
+            
+            RegisterType<TInterface, TClass>(factory);
         }
-        public void RegisterMethods(Type interfaceType, Type instanceType, object instance, string prefix = null) {
-            RegisterMethods(interfaceType, instanceType, () => instance, prefix);
+        public void RegisterType<TInterface, TClass>(TClass instance) where TClass : class, TInterface {
+            
+            RegisterType<TInterface, TClass>((sp) => instance);
         }
-        public void RegisterMethods(Type interfaceType, Type instanceType, Func<object> factory, string prefix = null) {
 
-            var rootName = instanceType.GetCustomAttribute<MessageNameAttribute>()?.Name ?? prefix.ToNull() ?? instanceType.Name;
-            var methodsWithName = interfaceType.GetMethods().Select(m => (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
-            foreach (var (methodInfo, methodNameAttribute) in methodsWithName) {
-                var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
-                var concatNames = $"{rootName}.{methodName}";
-                MethodsCollection.AddMethod(concatNames, methodInfo, factory);
-            }
+        public void RegisterType<TInterface, TClass>(Func<IServiceProvider, TClass> factory)
+            where TClass : class, TInterface {
+
+            RegisteredTypes.AddOrUpdate(typeof(TInterface).FullName, factory, (s, del) => factory);
         }
+
 
         public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
             MethodsCollection = methodsCollection;
@@ -140,6 +168,10 @@ namespace SignalARRR.Client {
         }
 
         private async Task<object> InvokeMethodAsync(ServerRequestMessage serverRequestMessage) {
+
+            if (serverRequestMessage.Method.Contains("|")) {
+                return await InvokeInterfaceMethodAsync(serverRequestMessage);
+            }
 
             var methodCallInfo = MethodsCollection.GetMethod(serverRequestMessage.Method);
             if(methodCallInfo == null)
@@ -183,6 +215,23 @@ namespace SignalARRR.Client {
 
             return result;
         }
+
+        private async Task<object> InvokeInterfaceMethodAsync(ServerRequestMessage serverRequestMessage) {
+
+            var splitted = serverRequestMessage.Method.Split('|');
+            var interfaceTypeName = splitted.First();
+
+            if (!RegisteredTypes.TryGetValue(interfaceTypeName, out var factory)) {
+                throw new TypeLoadException($"Can't find interface '{interfaceTypeName}'");
+            }
+
+            
+            var instance = factory.DynamicInvoke();
+
+
+            return null;
+        }
+
 
 
         private ConcurrentDictionary<Guid, CancellationTokenSource> cancellationTokenSources = new ConcurrentDictionary<Guid, CancellationTokenSource>();
