@@ -38,14 +38,13 @@ namespace TestClient {
                         //};
                         
                     })
-                    //.AddNewtonsoftJsonProtocol(options =>
-                    //{
-                    //    options.PayloadSerializerSettings.ContractResolver = new DefaultContractResolver();
-                    //    options.PayloadSerializerSettings.Converters.Add(new StringEnumConverter());
-                    //    options.PayloadSerializerSettings.Converters.Add(new IpAddressConverter());
-                    //    options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    //})
-                    .AddMessagePackProtocol()
+                    .AddNewtonsoftJsonProtocol(options => {
+                        options.PayloadSerializerSettings.ContractResolver = new DefaultContractResolver();
+                        options.PayloadSerializerSettings.Converters.Add(new StringEnumConverter());
+                        options.PayloadSerializerSettings.Converters.Add(new IpAddressConverter());
+                        options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    })
+                    //.AddMessagePackProtocol()
                     .ConfigureLogging(log => {
                         log.AddConsole();
                         log.SetMinimumLevel(LogLevel.Error);
@@ -77,9 +76,9 @@ namespace TestClient {
 
 
 
-            var testHubClient = connection.GetTypedMethods<ITestHub>("Test1");
-            var testHubClient2 = connection.GetTypedMethods<ITestHub>("Test1");
-            var testHubClient3 = connection.GetTypedMethods<ITestHub>("Test1");
+            var testHubClient = connection.GetTypedMethods<ITestHub>();
+            var testHubClient2 = connection.GetTypedMethods<ITestHub>();
+            var testHubClient3 = connection.GetTypedMethods<ITestHub>();
 
             var channelCounter = new ChannelCounter(connection);
             var channelCounterTask = new ChannelCounterTask(connection);

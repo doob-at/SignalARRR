@@ -47,7 +47,7 @@ namespace SignalARRR.Client {
         //    return this;
         //}
 
-        public T GetTypedMethods<T>(string nameSpace = null) {
+        public T GetTypedMethods<T>() {
             var instance = ClassCreator.CreateInstanceFromInterface<T>(new ClientClassCreatorHelper(this));
             return instance;
         }

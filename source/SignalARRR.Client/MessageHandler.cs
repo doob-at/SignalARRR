@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
@@ -21,14 +22,16 @@ using SignalARRR.Attributes;
 using SignalARRR.Client.ExtensionMethods;
 using SignalARRR.Constants;
 using SignalARRR.Helper;
+using SignalARRR.Interfaces;
 using SignalARRR.RemoteReferenceTypes;
 
 namespace SignalARRR.Client {
     public class MessageHandler {
         private readonly HARRRContext _harrrContext;
-        private ISignalARRRClientMethodsCollection MethodsCollection { get; set; } = new SignalARRRClientMethodsCollection();
+        private ISignalARRRMethodsCollection MethodsCollection { get; set; } = new SignalARRRMethodsCollection();
 
-        private ConcurrentDictionary<string, Delegate> RegisteredTypes = new ConcurrentDictionary<string, Delegate>();
+        private ISignalARRRInterfaceCollection InterfaceCollection { get; set; } = new SignalARRRInterfaceCollection();
+        
         public MessageHandler(HARRRContext harrrContext) {
             _harrrContext = harrrContext;
         }
@@ -52,7 +55,7 @@ namespace SignalARRR.Client {
             
             try {
                 message = PrepareServerRequestMessage(message);
-                var payload = await InvokeMethodAsync(message);
+                var payload = await InvokeAsync(message);
                 await SendResponse(message.Id, payload, null);
             } catch (Exception e) {
                 await _harrrContext.GetHubConnection().SendCoreAsync(MethodNames.ReplyServerRequest, new object[] { message.Id, null, e.GetBaseException().Message });
@@ -64,7 +67,7 @@ namespace SignalARRR.Client {
 
             try {
                 message = PrepareServerRequestMessage(message);
-                await InvokeMethodAsync(message);
+                await InvokeAsync(message);
             } catch {
                 // ignored
             }
@@ -118,33 +121,23 @@ namespace SignalARRR.Client {
 
 
         public void RegisterType<TInterface, TClass>() where TClass : class, TInterface {
-            
-            Func<IServiceProvider, TClass> factory = (sp) => {
-                var fromServiceProvider = sp.GetService<TClass>();
-                if (fromServiceProvider != null) {
-                    return fromServiceProvider;
-                }
-
-                return Activator.CreateInstance<TClass>();
-            };
-            
-            RegisterType<TInterface, TClass>(factory);
+            InterfaceCollection.RegisterType<TInterface, TClass>();
         }
         public void RegisterType<TInterface, TClass>(TClass instance) where TClass : class, TInterface {
-            
-            RegisterType<TInterface, TClass>((sp) => instance);
+
+            InterfaceCollection.RegisterType<TInterface, TClass>(instance);
         }
 
         public void RegisterType<TInterface, TClass>(Func<IServiceProvider, TClass> factory)
             where TClass : class, TInterface {
 
-            RegisteredTypes.AddOrUpdate(typeof(TInterface).FullName, factory, (s, del) => factory);
+            InterfaceCollection.RegisterType<TInterface, TClass>(factory);
         }
 
 
-        public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
-            MethodsCollection = methodsCollection;
-        }
+        //public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
+        //    MethodsCollection = methodsCollection;
+        //}
 
 
 
@@ -167,38 +160,50 @@ namespace SignalARRR.Client {
             }
         }
 
-        private async Task<object> InvokeMethodAsync(ServerRequestMessage serverRequestMessage) {
+        private Task<object> InvokeAsync(ServerRequestMessage serverRequestMessage) {
 
             if (serverRequestMessage.Method.Contains("|")) {
-                return await InvokeInterfaceMethodAsync(serverRequestMessage);
+                return InvokeInterfaceMethodAsync(serverRequestMessage);
             }
 
-            var methodCallInfo = MethodsCollection.GetMethod(serverRequestMessage.Method);
-            if(methodCallInfo == null)
-                throw new Exception($"Method '{serverRequestMessage.Method}' not found!");
+            return InvokeMethodAsync(serverRequestMessage);
+        }
+        private async Task<object> InvokeMethodAsync(ServerRequestMessage serverRequestMessage) {
 
-            var methodInfo = methodCallInfo.MethodInfo;
-            if (methodCallInfo == null || methodInfo == null) {
-                var errorMsg = $"Method '{serverRequestMessage.Method}' not found";
+           
 
-                throw new Exception(errorMsg);
-            }
+            var methodCallInfo = MethodsCollection.GetMethodInformations(serverRequestMessage.Method);
+            
+            var instance = methodCallInfo.Factory.DynamicInvoke(_harrrContext.GetHubConnection().GetServiceProvider());
+
+            return InvokeMethodInfoAsync(instance, methodCallInfo.MethodInfo, serverRequestMessage.Arguments, serverRequestMessage.GenericArguments, serverRequestMessage.CancellationGuid);
+
+        }
+
+        private Task<object> InvokeInterfaceMethodAsync(ServerRequestMessage serverRequestMessage) {
+            
+            var invokeInfos = InterfaceCollection.GetInvokeInformation(serverRequestMessage.Method);
+            var instance = invokeInfos.Factory.DynamicInvoke(_harrrContext.GetHubConnection().GetServiceProvider());
+            return InvokeMethodInfoAsync(instance, invokeInfos.MethodInfo, serverRequestMessage.Arguments, serverRequestMessage.GenericArguments, serverRequestMessage.CancellationGuid);
+
+        }
+
+
+        private async Task<object> InvokeMethodInfoAsync(object instance, MethodInfo methodInfo, IEnumerable<object> arguments, IEnumerable<string> genericArguments, Guid? cancellationTokenGuid) {
 
             CancellationToken cancellationToken = default;
-            if (serverRequestMessage.CancellationGuid.HasValue) {
+            if (cancellationTokenGuid.HasValue) {
                 var cancellation = new CancellationTokenSource();
-                cancellationTokenSources.TryAdd(serverRequestMessage.CancellationGuid.Value, cancellation);
+                cancellationTokenSources.TryAdd(cancellationTokenGuid.Value, cancellation);
                 cancellationToken = cancellation.Token;
             }
-            
 
-            var parameters = await BuildExecuteMethodParameters(methodCallInfo.MethodInfo, serverRequestMessage.Arguments, cancellationToken);
 
-            var instance = methodCallInfo.Factory != null ? methodCallInfo.Factory.DynamicInvoke() : Activator.CreateInstance(methodInfo.DeclaringType);
+            var parameters = await BuildExecuteMethodParameters(methodInfo, arguments, cancellationToken);
 
-            if (serverRequestMessage.GenericArguments?.Any() == true) {
+            if (genericArguments?.Any() == true) {
 
-                var arrType = serverRequestMessage.GenericArguments.Select(TypeHelper.FindType).ToList();
+                var arrType = genericArguments.Select(TypeHelper.FindType).ToList();
                 methodInfo = methodInfo.MakeGenericMethod(arrType.ToArray());
             }
 
@@ -209,30 +214,12 @@ namespace SignalARRR.Client {
                 result = await InvokeHelper.InvokeMethodAsync<object>(instance, methodInfo, parameters);
             }
 
-            if (serverRequestMessage.CancellationGuid.HasValue) {
-                cancellationTokenSources.TryRemove(serverRequestMessage.CancellationGuid.Value, out var token);
+            if (cancellationTokenGuid.HasValue) {
+                cancellationTokenSources.TryRemove(cancellationTokenGuid.Value, out var token);
             }
 
             return result;
         }
-
-        private async Task<object> InvokeInterfaceMethodAsync(ServerRequestMessage serverRequestMessage) {
-
-            var splitted = serverRequestMessage.Method.Split('|');
-            var interfaceTypeName = splitted.First();
-
-            if (!RegisteredTypes.TryGetValue(interfaceTypeName, out var factory)) {
-                throw new TypeLoadException($"Can't find interface '{interfaceTypeName}'");
-            }
-
-            
-            var instance = factory.DynamicInvoke();
-
-
-            return null;
-        }
-
-
 
         private ConcurrentDictionary<Guid, CancellationTokenSource> cancellationTokenSources = new ConcurrentDictionary<Guid, CancellationTokenSource>();
 

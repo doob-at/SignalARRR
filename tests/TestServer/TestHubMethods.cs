@@ -15,7 +15,7 @@ namespace TestServer
             Console.WriteLine(line);
         }
 
-        [MessageName("GibMirDatum")]
+        //[MessageName("GibMirDatum")]
         public string GetDate()
         {
             return $"{DateTime.Now} -- From Hub";

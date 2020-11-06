@@ -12,15 +12,18 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using NamedServices.Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Reflectensions;
+using SignalARRR.Interfaces;
 using SignalARRR.Server.ExtensionMethods;
 
 namespace SignalARRR.Server {
     public abstract class HARRR : Hub {
 
         private IHARRRClientManager ClientManager { get; }
-        private ISignalARRRServerMethodsCollection MethodsCollection { get; }
+        private ISignalARRRMethodsCollection MethodsCollection { get; }
+        private ISignalARRRInterfaceCollection InterfaceCollection { get; }
         private ServerRequestManager ServerRequestManager { get; }
 
         protected IServiceProvider ServiceProvider { get; }
@@ -35,13 +38,16 @@ namespace SignalARRR.Server {
 
         protected HARRR(IServiceProvider serviceProvider) {
             ServiceProvider = serviceProvider;
+            
 
             ClientManager = serviceProvider.GetRequiredService<IHARRRClientManager>();
             Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(this.GetType().FullName) ?? NullLogger.Instance;
 
-            MethodsCollection =
-                (ISignalARRRServerMethodsCollection)serviceProvider.GetRequiredService(
-                    typeof(SignalARRRServerMethodsCollection<>).MakeGenericType(this.GetType()));
+            MethodsCollection = serviceProvider.GetRequiredNamedService<ISignalARRRMethodsCollection>(this.GetType().FullName);
+            //(ISignalARRRServerMethodsCollection)serviceProvider.GetRequiredService(
+            //        typeof(SignalARRRServerMethodsCollection<>).MakeGenericType(this.GetType()));
+
+            InterfaceCollection = serviceProvider.GetRequiredNamedService<ISignalARRRInterfaceCollection>(this.GetType().FullName);
 
             ServerRequestManager = serviceProvider.GetService<ServerRequestManager>();
         }
@@ -85,10 +91,10 @@ namespace SignalARRR.Server {
                 if (Logger.IsEnabled(LogLevel.Debug))
                     Logger.LogDebug("InvokeMessage {Method}", clientMessage.Method);
 
-                var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider);
+                var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider, InterfaceCollection);
 
 
-                await strHelper.InvokeMethodAsync(clientMessage).ConfigureAwait(false);
+                await strHelper.InvokeAsync(clientMessage).ConfigureAwait(false);
             } catch (Exception e) {
                 throw new HARRRException(e);
             }
@@ -100,12 +106,12 @@ namespace SignalARRR.Server {
                 if (Logger.IsEnabled(LogLevel.Debug))
                     Logger.LogDebug("InvokeMessageResult {Method}", clientMessage.Method);
 
-                var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider);
+                var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider, InterfaceCollection);
 
 
 
 
-                return await strHelper.InvokeMethodAsync(clientMessage);
+                return await strHelper.InvokeAsync(clientMessage);
             } catch (Exception e) {
 
                 throw new HARRRException(e);
@@ -121,8 +127,8 @@ namespace SignalARRR.Server {
                 if (Logger.IsEnabled(LogLevel.Debug))
                     Logger.LogDebug("SendMessage {Method}", clientMessage.Method);
 
-                var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider);
-                _ = strHelper.InvokeMethodAsync(clientMessage).ConfigureAwait(false);
+                var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider, InterfaceCollection);
+                _ = strHelper.InvokeAsync(clientMessage).ConfigureAwait(false);
                 return Task.CompletedTask;
             } catch (Exception e) {
                 throw new HARRRException(e);
@@ -136,7 +142,7 @@ namespace SignalARRR.Server {
                 if (Logger.IsEnabled(LogLevel.Debug))
                     Logger.LogDebug("StreamMessage {Method}", clientMessage.Method);
 
-                var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider);
+                var strHelper = new MessageHandler(this, ClientContext, MethodsCollection, ServiceProvider,InterfaceCollection);
                 return await strHelper.InvokeStreamAsync(clientMessage, cancellationToken).ConfigureAwait(false);
             } catch (Exception e) {
                 throw new HARRRException(e);

@@ -42,7 +42,7 @@ namespace TestClient_FullFramework
             //});
 
             var tm = new TestClientMethods(DateTime.Now);
-            connection.RegisterClientMethods( tm, "scsm.");
+            //connection.RegisterClientMethods( tm, "scsm.");
 
 
             await ConsoleHelper.RegisterNewLineHandlerAsync();

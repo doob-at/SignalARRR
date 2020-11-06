@@ -17,4 +17,5 @@ namespace SignalARRR.Server {
     public class ServerMethods<T> : ServerMethods where T : HARRR {
 
     }
+
 }

@@ -14,12 +14,15 @@ using Reflectensions.ExtensionMethods;
 using Reflectensions.Helper;
 using SignalARRR.Exceptions;
 using SignalARRR.Helper;
+using SignalARRR.Interfaces;
 using ObservableExtensions = SignalARRR.Server.ExtensionMethods.ObservableExtensions;
 
 namespace SignalARRR.Server {
     internal class MessageHandler {
 
-        private ISignalARRRServerMethodsCollection MethodsCollection { get; }
+        private ISignalARRRMethodsCollection MethodsCollection { get; }
+
+        private ISignalARRRInterfaceCollection InterfaceCollection { get;  }
 
         private ILogger Logger { get; }
 
@@ -29,44 +32,79 @@ namespace SignalARRR.Server {
 
         private IServiceProvider _serviceProvider;
 
-        public MessageHandler(HARRR harrr, ClientContext clientContext, ISignalARRRServerMethodsCollection methodsCollection, IServiceProvider serviceProvider) {
+        public MessageHandler(HARRR harrr, ClientContext clientContext, ISignalARRRMethodsCollection methodsCollection, IServiceProvider serviceProvider, ISignalARRRInterfaceCollection signalARRRInterfaceCollection) {
             HARRR = harrr;
             MethodsCollection = methodsCollection;
+            InterfaceCollection = signalARRRInterfaceCollection;
             ClientContext = clientContext;
             _serviceProvider = serviceProvider;
             Logger = _serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType().FullName) ?? NullLogger.Instance;
         }
 
+
+
         public async Task<IAsyncEnumerable<object>> InvokeStreamAsync(ClientRequestMessage clientMessage, CancellationToken cancellationToken) {
 
-            
 
-
-
-            var methodInfo = MethodsCollection.GetMethod(clientMessage.Method);
-
-            if (methodInfo == null) {
-                var errorMsg = $"Method '{clientMessage.Method}' not found";
-                Logger.LogError(errorMsg);
-                throw new Exception(errorMsg);
+            if (clientMessage.Method.Contains("|")) {
+                return await InvokeInterfaceStreamAsync(clientMessage, cancellationToken);
+                
             }
 
+            return await InvokeMethodStreamAsync(clientMessage, cancellationToken);
+        }
+
+        public async Task<IAsyncEnumerable<object>> InvokeMethodStreamAsync(ClientRequestMessage clientMessage, CancellationToken cancellationToken) {
+
+            var methodInformations = MethodsCollection.GetMethodInformations(clientMessage.Method);
+
+           
             var authentication = new SignalARRRAuthentication(_serviceProvider);
-            var result = await authentication.Authorize(ClientContext, clientMessage.Authorization, methodInfo);
+            var result = await authentication.Authorize(ClientContext, clientMessage.Authorization, methodInformations.MethodInfo);
 
             if (!result.Succeeded) {
                 throw new UnauthorizedException();
             }
 
-            var instance = BuildInvokeTypeInstance(methodInfo);
+            object instance;
+            if (methodInformations.MethodInfo.DeclaringType == HARRR.GetType()) {
+                instance = ActivatorUtilities.CreateInstance(_serviceProvider, HARRR.GetType());
+            } else {
+                instance = _serviceProvider.GetRequiredService(methodInformations.MethodInfo.ReflectedType);
+            }
 
+            return await InvokeStreamMethodInfoAsync(instance, methodInformations.MethodInfo, clientMessage.Arguments, cancellationToken);
+            
+        }
+
+        public async Task<IAsyncEnumerable<object>> InvokeInterfaceStreamAsync(ClientRequestMessage clientMessage, CancellationToken cancellationToken) {
+
+            var invokeInfos = InterfaceCollection.GetInvokeInformation(clientMessage.Method);
+
+            var authentication = new SignalARRRAuthentication(_serviceProvider);
+            var result = await authentication.Authorize(ClientContext, clientMessage.Authorization, invokeInfos.MethodInfo);
+
+            if (!result.Succeeded) {
+                throw new UnauthorizedException();
+            }
+
+            var instance = invokeInfos.Factory.DynamicInvoke(_serviceProvider);
+            
+
+            return await InvokeStreamMethodInfoAsync(instance, invokeInfos.MethodInfo, clientMessage.Arguments,
+                cancellationToken);
+
+        }
+
+        public async Task<IAsyncEnumerable<object>> InvokeStreamMethodInfoAsync(object instance, MethodInfo methodInfo, IEnumerable<object> arguments, CancellationToken cancellationToken) {
+            
             var taskType = methodInfo.ReturnType;
             if (taskType.IsGenericTypeOf(typeof(Task<>))) {
                 taskType = methodInfo.ReturnType.GenericTypeArguments[0];
             }
 
-            var parameters = BuildExecuteMethodParameters(methodInfo, clientMessage.Arguments, cancellationToken);
-
+            var parameters = BuildExecuteMethodParameters(methodInfo, arguments, cancellationToken);
+            SetInvokingInstanceProperties(instance);
 
             if (taskType.IsGenericTypeOf(typeof(ChannelReader<>))) {
                 return await InvokeStreamingMethodAsync(instance, methodInfo, parameters).ConfigureAwait(false);
@@ -85,33 +123,69 @@ namespace SignalARRR.Server {
 
         }
 
-        public async Task<object> InvokeMethodAsync(ClientRequestMessage clientMessage) {
 
-           
 
-            var methodInfo = MethodsCollection.GetMethod(clientMessage.Method);
+        public async Task<object> InvokeAsync(ClientRequestMessage clientMessage) {
 
-            if (methodInfo == null) {
-                var errorMsg = $"Method '{clientMessage.Method}' not found";
-                Logger.LogError(errorMsg);
-                throw new Exception(errorMsg);
+            if (clientMessage.Method.Contains("|")) {
+                return await InvokeInterfaceAsync(clientMessage);
             }
 
+            return await InvokeMethodAsync(clientMessage);
 
+
+        }
+
+        public async Task<object> InvokeMethodAsync(ClientRequestMessage clientMessage) {
+
+            var methodInformations = MethodsCollection.GetMethodInformations(clientMessage.Method);
+            
             var authentication = new SignalARRRAuthentication(_serviceProvider);
-            var result = await authentication.Authorize(ClientContext, clientMessage.Authorization, methodInfo);
+            var result = await authentication.Authorize(ClientContext, clientMessage.Authorization, methodInformations.MethodInfo);
 
             if (!result.Succeeded) {
                 throw new UnauthorizedException();
             }
 
-            var parameters = BuildExecuteMethodParameters(methodInfo, clientMessage.Arguments);
+            object instance;
+            if (methodInformations.MethodInfo.DeclaringType == HARRR.GetType()) {
+                instance = ActivatorUtilities.CreateInstance(_serviceProvider, HARRR.GetType());
+            } else {
+                instance = _serviceProvider.GetRequiredService(methodInformations.MethodInfo.ReflectedType);
+            }
 
-            var instance = BuildInvokeTypeInstance(methodInfo);
+            return await InvokeMethodInfoAsync(instance, methodInformations.MethodInfo, clientMessage.Arguments, clientMessage.GenericArguments);
 
-            if (clientMessage.GenericArguments?.Any() == true) {
+        }
 
-                var arrType = clientMessage.GenericArguments.Select(TypeHelper.FindType).ToList();
+        public async Task<object> InvokeInterfaceAsync(ClientRequestMessage clientMessage) {
+
+            var invokeInfos = InterfaceCollection.GetInvokeInformation(clientMessage.Method);
+
+            var authentication = new SignalARRRAuthentication(_serviceProvider);
+            var result = await authentication.Authorize(ClientContext, clientMessage.Authorization, invokeInfos.MethodInfo);
+
+            if (!result.Succeeded) {
+                throw new UnauthorizedException();
+            }
+
+            var instance = invokeInfos.Factory.DynamicInvoke(_serviceProvider);
+
+
+            return await InvokeMethodInfoAsync(instance, invokeInfos.MethodInfo, clientMessage.Arguments, clientMessage.GenericArguments);
+
+        }
+
+        public async Task<object> InvokeMethodInfoAsync(object instance, MethodInfo methodInfo, IEnumerable<object> arguments, IEnumerable<string> genericArguments) {
+
+            var parameters = BuildExecuteMethodParameters(methodInfo,arguments);
+
+            SetInvokingInstanceProperties(instance);
+
+            //var enumerable = genericArguments as string[] ?? genericArguments.ToArray();
+            if (genericArguments?.Any() == true) {
+
+                var arrType = genericArguments.Select(TypeHelper.FindType).ToList();
                 methodInfo = methodInfo.MakeGenericMethod(arrType.ToArray());
             }
 
@@ -125,6 +199,8 @@ namespace SignalARRR.Server {
 
         }
 
+
+
         private object BuildInvokeTypeInstance(MethodInfo methodInfo) {
 
             object instance;
@@ -133,6 +209,18 @@ namespace SignalARRR.Server {
             } else {
                 instance = _serviceProvider.GetRequiredService(methodInfo.ReflectedType);
             }
+            instance.SetPropertyValue("ClientContext", ClientContext);
+            instance.SetPropertyValue("Context", HARRR.Context);
+            instance.SetPropertyValue("Clients", HARRR.Clients);
+            instance.SetPropertyValue("Groups", HARRR.Groups);
+            var logger = _serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(instance.GetType().FullName) ?? NullLogger.Instance;
+            instance.SetPropertyValue("Logger", logger);
+
+            return instance;
+        }
+
+        private object SetInvokingInstanceProperties(object instance) {
+            
             instance.SetPropertyValue("ClientContext", ClientContext);
             instance.SetPropertyValue("Context", HARRR.Context);
             instance.SetPropertyValue("Clients", HARRR.Clients);

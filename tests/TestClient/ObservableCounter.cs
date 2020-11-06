@@ -27,7 +27,7 @@ namespace TestClient {
 
             try {
 
-                var cl = Connection.GetTypedMethods<ITestHub>("Test1");
+                var cl = Connection.GetTypedMethods<ITestHub>();
                 var stream1 = cl.ObservableCounter(10, 500);
 
                 var ch = cl.ChannelCounter(10, 5000, cancellationTokenSource.Token);

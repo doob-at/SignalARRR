@@ -18,6 +18,7 @@ using TestShared;
 namespace TestServer {
     [MessageName("Test1")]
     public class TestHubMessageMethods : ServerMethods<TestHub>, ITestHub {
+
         private readonly ConsoleWriter2 _consoleWriter2;
 
         private IObservable<int> GetNextInt { get; }
@@ -32,7 +33,7 @@ namespace TestServer {
         }
 
         [MessageName("GibMirDatum")]
-        [Authorize("TestPolicy1")]
+        //[Authorize("TestPolicy1")]
         public string GetDate([FromServices]ConsoleWriter writer) {
             writer.WriteInfo("From ServerMethod");
             _consoleWriter2.WriteInfo("From ServerMethod");
