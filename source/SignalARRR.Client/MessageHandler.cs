@@ -4,26 +4,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Security;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
-using Reflectensions;
-using Reflectensions.ExtensionMethods;
-using Reflectensions.Helper;
-using SignalARRR.Attributes;
+using doob.Reflectensions;
+using doob.Reflectensions.ExtensionMethods;
+using doob.Reflectensions.Helper;
 using SignalARRR.Client.ExtensionMethods;
 using SignalARRR.Constants;
-using SignalARRR.Helper;
 using SignalARRR.Interfaces;
 using SignalARRR.RemoteReferenceTypes;
+using TypeHelper = SignalARRR.Helper.TypeHelper;
 
 namespace SignalARRR.Client {
     public class MessageHandler {
@@ -252,7 +245,7 @@ namespace SignalARRR.Client {
 
                 if (parameterInfo.ParameterType != par.GetType()) {
 
-                    if (par.TryTo(parameterInfo.ParameterType, out var pt)) {
+                    if (par.Reflect().TryTo(parameterInfo.ParameterType, out var pt)) {
                         par = pt;
                     } else {
                         var json = Json.Converter.ToJson(par);

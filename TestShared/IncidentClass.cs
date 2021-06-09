@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Reflectensions.Internal;
+using doob.Reflectensions.Internal;
 
 
 namespace TestShared {

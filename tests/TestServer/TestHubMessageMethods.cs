@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Reflectensions.ExtensionMethods;
 using SignalARRR.Attributes;
 using SignalARRR.Server;
-using SignalARRR.Server.ExtensionMethods;
 using TestShared;
 
 namespace TestServer {
