@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
+using doob.Reflectensions;
+using doob.Reflectensions.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Connections;
@@ -11,11 +10,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Reflectensions;
-using Reflectensions.ExtensionMethods;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace SignalARRR.Server.ExtensionMethods {
     public static class HubEndpointConventionBuilderExtensions {

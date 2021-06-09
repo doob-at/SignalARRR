@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
+using doob.Reflectensions.Common.Helper;
+using doob.Reflectensions.ExtensionMethods;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.DependencyInjection;
-using Reflectensions.ExtensionMethods;
-using Reflectensions.HelperClasses;
 using SignalARRR.Client.ExtensionMethods;
 
 namespace SignalARRR.Client {
@@ -35,7 +33,7 @@ namespace SignalARRR.Client {
 
         private Uri GetBaseUrl() {
             var endPoint = _serviceProvider.GetRequiredService<EndPoint>();
-            return endPoint.GetPropertyValue<Uri>("Uri");
+            return endPoint.Reflect().GetPropertyValue<Uri>("Uri");
         }
 
         public Uri GetResponseUri(Guid id, string error = null) {

@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using doob.Reflectensions.Common;
 using Microsoft.AspNetCore.SignalR.Client;
-using Reflectensions.ExtensionMethods;
+
 using SignalARRR.Client.ExtensionMethods;
 using SignalARRR.CodeGenerator;
 using SignalARRR.Constants;

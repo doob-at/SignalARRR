@@ -5,17 +5,17 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using doob.Reflectensions.ExtensionMethods;
+using doob.Reflectensions.Helper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json.Linq;
-using Reflectensions.ExtensionMethods;
-using Reflectensions.Helper;
 using SignalARRR.Exceptions;
-using SignalARRR.Helper;
 using SignalARRR.Interfaces;
 using ObservableExtensions = SignalARRR.Server.ExtensionMethods.ObservableExtensions;
+using TypeHelper = SignalARRR.Helper.TypeHelper;
 
 namespace SignalARRR.Server {
     internal class MessageHandler {
@@ -209,24 +209,27 @@ namespace SignalARRR.Server {
             } else {
                 instance = _serviceProvider.GetRequiredService(methodInfo.ReflectedType);
             }
-            instance.SetPropertyValue("ClientContext", ClientContext);
-            instance.SetPropertyValue("Context", HARRR.Context);
-            instance.SetPropertyValue("Clients", HARRR.Clients);
-            instance.SetPropertyValue("Groups", HARRR.Groups);
+
+            var reflectInstance = instance.Reflect();
+            reflectInstance.SetPropertyValue("ClientContext", ClientContext);
+            reflectInstance.SetPropertyValue("Context", HARRR.Context);
+            reflectInstance.SetPropertyValue("Clients", HARRR.Clients);
+            reflectInstance.SetPropertyValue("Groups", HARRR.Groups);
             var logger = _serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(instance.GetType().FullName) ?? NullLogger.Instance;
-            instance.SetPropertyValue("Logger", logger);
+            reflectInstance.SetPropertyValue("Logger", logger);
 
             return instance;
         }
 
         private object SetInvokingInstanceProperties(object instance) {
             
-            instance.SetPropertyValue("ClientContext", ClientContext);
-            instance.SetPropertyValue("Context", HARRR.Context);
-            instance.SetPropertyValue("Clients", HARRR.Clients);
-            instance.SetPropertyValue("Groups", HARRR.Groups);
+            var reflectInstance = instance.Reflect();
+            reflectInstance.SetPropertyValue("ClientContext", ClientContext);
+            reflectInstance.SetPropertyValue("Context", HARRR.Context);
+            reflectInstance.SetPropertyValue("Clients", HARRR.Clients);
+            reflectInstance.SetPropertyValue("Groups", HARRR.Groups);
             var logger = _serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(instance.GetType().FullName) ?? NullLogger.Instance;
-            instance.SetPropertyValue("Logger", logger);
+            reflectInstance.SetPropertyValue("Logger", logger);
 
             return instance;
         }
@@ -296,7 +299,7 @@ namespace SignalARRR.Server {
                     if (par is JToken jt) {
                         par = jt.ToObject(p.ParameterType);
                     } else {
-                        par = par.To(p.ParameterType);
+                        par = par.Reflect().To(p.ParameterType);
                     }
 
                 }

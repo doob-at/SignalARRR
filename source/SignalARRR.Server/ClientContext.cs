@@ -1,22 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using doob.Reflectensions.Common;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using Reflectensions.HelperClasses;
 using SignalARRR.CodeGenerator;
 using SignalARRR.Server.ExtensionMethods;
 
@@ -162,7 +157,7 @@ namespace SignalARRR.Server {
 
         public bool Has(string key, string value) {
             if (TryGetValue(key, out var val)) {
-                return val.Any(v => Wildcard.Match(v, value));
+                return val.Any(v => v.Match(value));
             }
 
             return false;

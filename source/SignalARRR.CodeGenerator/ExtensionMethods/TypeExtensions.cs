@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
+using doob.Reflectensions.ExtensionMethods;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Reflectensions.ExtensionMethods;
+
 
 namespace SignalARRR.CodeGenerator.ExtensionMethods {
     public static class TypeExtensions {

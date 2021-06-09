@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.AspNetCore.SignalR.Protocol;
-using Microsoft.Extensions.DependencyInjection;
-using Reflectensions.ExtensionMethods;
 
 namespace SignalARRR.Client.ExtensionMethods {
     public static class HubConnectionExtensions {
