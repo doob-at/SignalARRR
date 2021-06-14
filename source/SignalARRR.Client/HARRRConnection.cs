@@ -242,7 +242,7 @@ namespace SignalARRR.Client {
         public Task StartAsync(CancellationToken cancellation = default) => HubConnection.StartAsync(cancellation);
         public Task StopAsync(CancellationToken cancellation = default) => HubConnection.StopAsync(cancellation);
 
-        public Task DisposeAsync() {
+        public ValueTask DisposeAsync() {
             return HubConnection.DisposeAsync();
         }
 

@@ -1,16 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>8.0</LangVersion>
-    <UserSecretsId>8515674e-1d2f-4600-af5d-702e54f54ed7</UserSecretsId>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <AssemblyName>doob.SignalARRR.CodeGenerator</AssemblyName>
+    <RootNamespace>doob.SignalARRR.CodeGenerator</RootNamespace>
+    <LangVersion>9</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Bernhard Windisch</Authors>
+    <Company>-</Company>
+    <Description></Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/doob-at/SignalARRR</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/doob-at/SignalARRR</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageId>doob.SignalARRR.CodeGenerator</PackageId>
+    <Product>doob.SignalARRR.CodeGenerator</Product>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.7.0" />
-    <PackageReference Include="doob.Reflectensions.CodeDefinition" Version="6.2.1-beta0013" />
-    <PackageReference Include="System.Interactive.Async" Version="4.1.1" />
-    <PackageReference Include="System.Threading.Channels" Version="4.7.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
+    <PackageReference Include="doob.Reflectensions.CodeDefinition" Version="6.2.1-beta0017" />
+    <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
+    <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
   </ItemGroup>
 
 

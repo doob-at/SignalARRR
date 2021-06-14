@@ -161,7 +161,7 @@ namespace SignalARRR.Server {
         public async Task<object> InvokeInterfaceAsync(ClientRequestMessage clientMessage) {
 
             var invokeInfos = InterfaceCollection.GetInvokeInformation(clientMessage.Method);
-
+            
             var authentication = new SignalARRRAuthentication(_serviceProvider);
             var result = await authentication.Authorize(ClientContext, clientMessage.Authorization, invokeInfos.MethodInfo);
 
@@ -169,7 +169,14 @@ namespace SignalARRR.Server {
                 throw new UnauthorizedException();
             }
 
-            var instance = invokeInfos.Factory.DynamicInvoke(_serviceProvider);
+            object instance;
+            if (invokeInfos.MethodInfo.DeclaringType == HARRR.GetType()) {
+                instance = ActivatorUtilities.CreateInstance(_serviceProvider, HARRR.GetType());
+            } else {
+                instance = invokeInfos.Factory.DynamicInvoke(_serviceProvider);
+            }
+
+            
 
 
             return await InvokeMethodInfoAsync(instance, invokeInfos.MethodInfo, clientMessage.Arguments, clientMessage.GenericArguments);

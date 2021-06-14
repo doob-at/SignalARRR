@@ -34,43 +34,70 @@ namespace SignalARRR.Server.ExtensionMethods {
         private static void AddSignalARRRMethods(IServiceCollection serviceCollection, SignalARRRServerOptions serverOptions) {
 
 
-            
-            Dictionary<Type, ISignalARRRMethodsCollection> hubMethodsDictionary = serverOptions.AssembliesContainingServerMethods
-                .SelectMany(ass => ass.GetTypes().WhichInheritFromClass(typeof(HARRR))).ToDictionary(type => type,
-                    hubType => {
 
-                        //var serviceType = typeof(SignalARRRServerMethodsCollection<>).MakeGenericType(hubType);
-                        var genColl = new SignalARRRMethodsCollection();
-                        
-                       
+            Dictionary<Type, ISignalARRRMethodsCollection> hubMethodsDictionary = new();
+            Dictionary<Type, ISignalARRRInterfaceCollection> interfaceDictionary = new();
+            //serverOptions.AssembliesContainingServerMethods
+            //.SelectMany(ass => ass.GetTypes().WhichInheritFromClass(typeof(HARRR))).ToDictionary(type => type,
+            //    hubType => {
 
-                        var messageMethodsWithName = hubType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Select(m =>
-                            (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
+            //        var genColl = new SignalARRRMethodsCollection();
 
-                        foreach (var (methodInfo, methodNameAttribute) in messageMethodsWithName) {
-                            var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
-                            genColl.AddMethod(methodName, methodInfo);
-                        }
+            //        var messageMethodsWithName = hubType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Select(m =>
+            //            (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
 
-                        return (ISignalARRRMethodsCollection)genColl;
-                    });
+            //        foreach (var (methodInfo, methodNameAttribute) in messageMethodsWithName) {
+            //            var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
+            //            genColl.AddMethod(methodName, methodInfo);
+            //        }
 
-           var serverMethodsFromAllAssemblies = serverOptions.AssembliesContainingServerMethods
-                .SelectMany(ass => ass.GetTypes().WhichInheritFromClass(typeof(ServerMethods<>)))
-                .GroupBy(ass => ass.BaseType?.GenericTypeArguments[0]);
+            //        return (ISignalARRRMethodsCollection)genColl;
+            //    });
 
-            
 
-            foreach (var grouping in serverMethodsFromAllAssemblies) {
 
-                if(!hubMethodsDictionary.TryGetValue(grouping.Key, out var coll))
+            var harrTypes = serverOptions.AssembliesContainingServerMethods.SelectMany(ass =>
+                ass.GetTypes().WhichInheritFromClass(typeof(HARRR)));
+
+            foreach (var harrType in harrTypes) {
+                var methodsCollection = new SignalARRRMethodsCollection();
+                var messageMethodsWithName = harrType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Select(m =>
+                    (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
+
+                foreach (var (methodInfo, methodNameAttribute) in messageMethodsWithName) {
+                    var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
+                    methodsCollection.AddMethod(methodName, methodInfo);
+                }
+
+                hubMethodsDictionary[harrType] = methodsCollection;
+
+                var directInterfaces = harrType.GetDirectInterfaces().ToList();
+                if (directInterfaces.Any()) {
+                    var interfaceCollection = new SignalARRRInterfaceCollection();
+                    foreach (var @interface in directInterfaces) {
+                        interfaceCollection.RegisterInterface(@interface, harrType);
+                    }
+
+                    interfaceDictionary[harrType] = interfaceCollection;
+                }
+
+            }
+
+
+            var serverMethodsFromAllAssemblies = serverOptions.AssembliesContainingServerMethods
+                 .SelectMany(ass => ass.GetTypes().WhichInheritFromClass(typeof(ServerMethods<>))).ToList();
+            var grouped = serverMethodsFromAllAssemblies.GroupBy(ass => ass.BaseType?.GenericTypeArguments[0]).ToList();
+
+            foreach (var grouping in grouped) {
+
+                if (!hubMethodsDictionary.TryGetValue(grouping.Key, out var coll))
                     continue;
 
-                
+
                 foreach (var type in grouping) {
 
                     serviceCollection.AddTransient(type);
-                    
+
                     var rootName = type.GetCustomAttribute<MessageNameAttribute>()?.Name ?? type.Name;
                     var methodsWithName = type.GetMethods().Select(m => (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
                     foreach (var (methodInfo, methodNameAttribute) in methodsWithName) {
@@ -79,16 +106,38 @@ namespace SignalARRR.Server.ExtensionMethods {
                         coll.AddMethod(concatNames, methodInfo);
                     }
 
-                    var interfaceCollection = new SignalARRRInterfaceCollection();
-                    foreach (var @interface in type.GetInterfaces()) {
-                        interfaceCollection.RegisterInterface(@interface, type);
+                    var directInterfaces = type.GetDirectInterfaces().ToList();
+                    if (directInterfaces.Any()) {
+
+                        if (!interfaceDictionary.TryGetValue(type, out var interfaceCollection))
+                            interfaceCollection = new SignalARRRInterfaceCollection();
+
+                        foreach (var @interface in directInterfaces) {
+                            interfaceCollection.RegisterInterface(@interface, type);
+                        }
+
+                        interfaceDictionary[type.BaseType!.GenericTypeArguments[0]] = interfaceCollection;
                     }
 
-                    var n = type.BaseType?.GenericTypeArguments[0].FullName;
-                    serviceCollection.AddNamedSingleton<ISignalARRRMethodsCollection>(n, _ => coll);
-                    serviceCollection.AddNamedTransient<ISignalARRRInterfaceCollection>(n, _ => interfaceCollection);
+                    //var interfaceCollection1 = new SignalARRRInterfaceCollection();
+                    //foreach (var @interface in type.GetInterfaces()) {
+                    //    interfaceCollection1.RegisterInterface(@interface, type);
+                    //}
+
+                    //var n = type.BaseType?.GenericTypeArguments[0].FullName;
+                    //serviceCollection.AddNamedTransient<ISignalARRRInterfaceCollection>(n, _ => interfaceCollection1);
 
                 }
+            }
+
+            foreach (var (key, value) in hubMethodsDictionary) {
+                var n = key.FullName;
+                serviceCollection.AddNamedSingleton<ISignalARRRMethodsCollection>(n, _ => value);
+            }
+
+            foreach (var (key, value) in interfaceDictionary) {
+                var n = key.FullName;
+                serviceCollection.AddNamedSingleton<ISignalARRRInterfaceCollection>(n, _ => value);
             }
 
             //foreach (var (key, (collection, serviceType)) in hubMethodsDictionary)

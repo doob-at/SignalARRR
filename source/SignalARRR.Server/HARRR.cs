@@ -37,11 +37,11 @@ namespace SignalARRR.Server {
             ClientManager = serviceProvider.GetRequiredService<IHARRRClientManager>();
             Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(this.GetType().FullName) ?? NullLogger.Instance;
 
-            MethodsCollection = serviceProvider.GetRequiredNamedService<ISignalARRRMethodsCollection>(this.GetType().FullName);
+            MethodsCollection = serviceProvider.GetNamedService<ISignalARRRMethodsCollection>(this.GetType().FullName) ?? new SignalARRRMethodsCollection();
             //(ISignalARRRServerMethodsCollection)serviceProvider.GetRequiredService(
             //        typeof(SignalARRRServerMethodsCollection<>).MakeGenericType(this.GetType()));
 
-            InterfaceCollection = serviceProvider.GetRequiredNamedService<ISignalARRRInterfaceCollection>(this.GetType().FullName);
+            InterfaceCollection = serviceProvider.GetNamedService<ISignalARRRInterfaceCollection>(this.GetType().FullName) ?? new SignalARRRInterfaceCollection();
 
             ServerRequestManager = serviceProvider.GetService<ServerRequestManager>();
         }

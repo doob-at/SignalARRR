@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 using SignalARRR.Helper;
 
 namespace SignalARRR
@@ -42,7 +43,9 @@ namespace SignalARRR
                     return fromServiceProvider;
                 }
 
-                return Activator.CreateInstance(instanceType);
+                return ActivatorUtilities.CreateInstance(sp, instanceType);
+                
+                //return Activator.CreateInstance(instanceType);
             }
 
             RegisterInterface(interfaceType, Factory);

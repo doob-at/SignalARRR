@@ -1,20 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
-    <AssemblyName>SignalARRR.Server</AssemblyName>
-    <RootNamespace>SignalARRR.Server</RootNamespace>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+    <AssemblyName>doob.SignalARRR.Server</AssemblyName>
+    <RootNamespace>doob.SignalARRR.Server</RootNamespace>
+    <LangVersion>9</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Authors>Bernhard Windisch</Authors>
     <Company>-</Company>
     <Description></Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/windischb/SignalARRR</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/windischb/SignalARRR</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/doob-at/SignalARRR</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/doob-at/SignalARRR</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageId>SignalARRR.Server</PackageId>
-    <Product>SignalARRR.Server</Product>
-    <Version></Version>
-    <LangVersion>8</LangVersion>
+    <PackageId>doob.SignalARRR.Server</PackageId>
+    <Product>doob.SignalARRR.Server</Product>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,15 +25,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.1" />
-    <PackageReference Include="NamedServices.Microsoft.Extensions.DependencyInjection" Version="2.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="doob.Reflectensions.Json" Version="6.2.1-beta0013" />
-    <PackageReference Include="doob.Reflectensions.Invoke" Version="6.2.1-beta0013" />
-    <PackageReference Include="doob.Reflectensions.CommonExtensions" Version="6.2.1-beta0013" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.7.0" />
-    <PackageReference Include="System.Interactive.Async" Version="4.1.1" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
+    <PackageReference Include="NamedServices.Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="doob.Reflectensions.Json" Version="6.2.1-beta0017" />
+    <PackageReference Include="doob.Reflectensions.Invoke" Version="6.2.1-beta0017" />
+    <PackageReference Include="doob.Reflectensions.CommonExtensions" Version="6.2.1-beta0017" />
+    <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
+    <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

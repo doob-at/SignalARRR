@@ -2,31 +2,34 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
-    <AssemblyName>SignalARRR.Client</AssemblyName>
-    <RootNamespace>SignalARRR.Client</RootNamespace>
+    <AssemblyName>doob.SignalARRR.Client</AssemblyName>
+    <RootNamespace>doob.SignalARRR.Client</RootNamespace>
+    <LangVersion>9</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Authors>Bernhard Windisch</Authors>
     <Company>-</Company>
     <Description></Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/windischb/SignalARRR</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/windischb/SignalARRR</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/doob-at/SignalARRR</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/doob-at/SignalARRR</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageId>SignalARRR.Client</PackageId>
-    <Product>SignalARRR.Client</Product>
-    <Version></Version>
-    <LangVersion>8</LangVersion>
+    <PackageId>doob.SignalARRR.Client</PackageId>
+    <Product>doob.SignalARRR.Client</Product>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.1.9" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="3.1.9" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.7.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.9" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="doob.Reflectensions.Json" Version="6.2.1-beta0013" />
-    <PackageReference Include="doob.Reflectensions.CommonExtensions" Version="6.2.1-beta0013" />
-    <PackageReference Include="doob.Reflectensions.Invoke" Version="6.2.1-beta0013" />
-    <PackageReference Include="System.Interactive.Async" Version="4.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="5.0.7" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="doob.Reflectensions.Json" Version="6.2.1-beta0017" />
+    <PackageReference Include="doob.Reflectensions.CommonExtensions" Version="6.2.1-beta0017" />
+    <PackageReference Include="doob.Reflectensions.Invoke" Version="6.2.1-beta0017" />
+    <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
