@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SignalARRR.Server.StreamingHelper {
+namespace doob.SignalARRR.Server.StreamingHelper {
     public class AutoStreamOptions {
         public int? MemoryThreshold { get; internal set; }
 

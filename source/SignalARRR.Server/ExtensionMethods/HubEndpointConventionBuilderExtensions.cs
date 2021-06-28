@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 
-namespace SignalARRR.Server.ExtensionMethods {
+namespace doob.SignalARRR.Server.ExtensionMethods {
     public static class HubEndpointConventionBuilderExtensions {
 
         public static HubEndpointConventionBuilder MapHARRRController<THub>(

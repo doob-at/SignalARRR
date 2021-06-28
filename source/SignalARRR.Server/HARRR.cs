@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using doob.Reflectensions;
+using doob.SignalARRR.Server.ExtensionMethods;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NamedServices.Microsoft.Extensions.DependencyInjection;
-
+using SignalARRR;
 using SignalARRR.Interfaces;
-using SignalARRR.Server.ExtensionMethods;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     public abstract class HARRR : Hub {
 
         private IHARRRClientManager ClientManager { get; }

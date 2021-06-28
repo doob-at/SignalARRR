@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
 
-namespace SignalARRR.Server
+namespace doob.SignalARRR.Server
 {
     internal interface IHARRRClientManager
     {

@@ -12,12 +12,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json.Linq;
+using SignalARRR;
 using SignalARRR.Exceptions;
 using SignalARRR.Interfaces;
-using ObservableExtensions = SignalARRR.Server.ExtensionMethods.ObservableExtensions;
+using ObservableExtensions = doob.SignalARRR.Server.ExtensionMethods.ObservableExtensions;
 using TypeHelper = SignalARRR.Helper.TypeHelper;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     internal class MessageHandler {
 
         private ISignalARRRMethodsCollection MethodsCollection { get; }

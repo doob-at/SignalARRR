@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.AspNetCore.Http.Connections;
+﻿using Microsoft.AspNetCore.Http.Connections;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     public class MapHARRRControllerOptions: HttpConnectionDispatcherOptions {
 
         public bool HttpResponse { get; set; }

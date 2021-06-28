@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using doob.SignalARRR.Server.ExtensionMethods;
+using doob.SignalARRR.Server.JsonConverters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -16,8 +18,6 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using SignalARRR.Server.ExtensionMethods;
-using SignalARRR.Server.JsonConverters;
 using Xunit;
 
 namespace SignalARRR.Tests {

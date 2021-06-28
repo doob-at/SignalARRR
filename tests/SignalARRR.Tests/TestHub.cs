@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using SignalARRR.Server;
+using doob.SignalARRR.Server;
 using SignalARRR.Tests.SharedModels;
 
 namespace SignalARRR.Tests {

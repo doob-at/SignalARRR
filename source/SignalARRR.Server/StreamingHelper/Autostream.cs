@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading;
 
-namespace SignalARRR.Server.StreamingHelper {
+namespace doob.SignalARRR.Server.StreamingHelper {
 
     public class AutoStream : Stream {
 

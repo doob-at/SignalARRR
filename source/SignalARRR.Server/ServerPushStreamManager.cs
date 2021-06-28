@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     internal class ServerPushStreamManager {
 
 

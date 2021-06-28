@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using doob.Reflectensions.ExtensionMethods;
 
-namespace SignalARRR.Server
+namespace doob.SignalARRR.Server
 {
     public class ClientManager {
 

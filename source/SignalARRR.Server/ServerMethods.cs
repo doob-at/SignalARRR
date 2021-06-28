@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     public class ServerMethods {
         public ClientContext ClientContext { get; set; }
 

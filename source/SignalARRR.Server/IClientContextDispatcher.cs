@@ -2,8 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using SignalARRR;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     internal interface IClientContextDispatcher {
 
         Task ProxyClientAsync(string clientId, ServerRequestMessage serverRequestMessage, HttpContext httpContext);

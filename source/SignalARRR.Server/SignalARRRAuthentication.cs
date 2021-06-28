@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
+using doob.SignalARRR.Server.ExtensionMethods;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using SignalARRR.Server.ExtensionMethods;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     public class SignalARRRAuthentication {
 
         private IAuthenticationSchemeProvider _schemes { get; }

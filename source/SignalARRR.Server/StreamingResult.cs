@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Channels;
 using SignalARRR.Exceptions;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
 
     internal abstract class StreamingResult : IAsyncEnumerable<object> {
 

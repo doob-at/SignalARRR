@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using SignalARRR.RemoteReferenceTypes;
-using SignalARRR.Server.ExtensionMethods;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     public class MethodArgumentPreperator {
 
 

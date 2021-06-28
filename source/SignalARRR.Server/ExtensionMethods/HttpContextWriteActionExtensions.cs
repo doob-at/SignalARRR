@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +11,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
-namespace SignalARRR.Server.ExtensionMethods {
+namespace doob.SignalARRR.Server.ExtensionMethods {
     public static class HttpContextWriteActionExtensions {
         
         public static Task WriteActionResult<TResult>(this HttpContext context, TResult result) where TResult : IActionResult {

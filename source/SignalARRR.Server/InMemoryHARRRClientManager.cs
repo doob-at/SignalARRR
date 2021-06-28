@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     internal class InMemoryHARRRClientManager : IHARRRClientManager {
         private ConcurrentDictionary<string, ClientContext> ClientStore { get; } = new ConcurrentDictionary<string, ClientContext>();
         //private IServiceProvider ServiceProvider { get; }

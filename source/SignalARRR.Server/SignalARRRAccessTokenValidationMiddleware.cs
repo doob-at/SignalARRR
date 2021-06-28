@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using doob.SignalARRR.Server.ExtensionMethods;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using SignalARRR.Server.ExtensionMethods;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     public class SignalARRRAccessTokenValidationMiddleware {
         private readonly RequestDelegate _next;
 

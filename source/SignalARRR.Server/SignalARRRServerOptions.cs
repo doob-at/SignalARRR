@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     public class SignalARRRServerOptions {
 
         public List<Assembly> AssembliesContainingServerMethods { get; }= new List<Assembly>()

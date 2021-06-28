@@ -6,7 +6,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Channels;
 
-namespace SignalARRR.Server.ExtensionMethods {
+namespace doob.SignalARRR.Server.ExtensionMethods {
     internal static class ObservableExtensions {
         public static ChannelReader<T> AsChannelReader<T>(this IObservable<T> observable, int? maxBufferSize = null, CancellationToken cancellationToken = default) {
             // This sample shows adapting an observable to a ChannelReader without 

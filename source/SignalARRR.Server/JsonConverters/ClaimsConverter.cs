@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace SignalARRR.Server.JsonConverters {
+namespace doob.SignalARRR.Server.JsonConverters {
     public class ClaimsConverter : JsonConverter {
         public override bool CanConvert(Type objectType) {
             return (objectType == typeof(System.Security.Claims.Claim));

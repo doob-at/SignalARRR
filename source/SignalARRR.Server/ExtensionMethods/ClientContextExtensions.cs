@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using SignalARRR;
 using SignalARRR.Constants;
-using SignalARRR.RemoteReferenceTypes;
 
-namespace SignalARRR.Server.ExtensionMethods {
+namespace doob.SignalARRR.Server.ExtensionMethods {
     public static class ClientContextExtensions {
 
         public static async Task<ClientCollectionResult<TResult>> Invoke<TResult>(this ClientContext clientContext, string method, object[] arguments, CancellationToken cancellationToken) {

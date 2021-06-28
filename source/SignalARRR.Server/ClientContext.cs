@@ -6,16 +6,16 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using doob.Reflectensions.Common;
+using doob.SignalARRR.Server.ExtensionMethods;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using SignalARRR.CodeGenerator;
-using SignalARRR.Server.ExtensionMethods;
+using ClassCreator = doob.SignalARRR.Server.CodeGenerator.ClassCreator;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
 
     public class ClientContext {
         public string Id { get; }

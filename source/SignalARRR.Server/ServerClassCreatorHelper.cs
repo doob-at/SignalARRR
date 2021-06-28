@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using doob.Reflectensions.Helper;
+using doob.SignalARRR.Server.ExtensionMethods;
 using Microsoft.Extensions.DependencyInjection;
-using SignalARRR.CodeGenerator;
-using SignalARRR.Server.ExtensionMethods;
+using SignalARRR;
+using ClassCreatorHelper = doob.SignalARRR.Server.CodeGenerator.ClassCreatorHelper;
 
-namespace SignalARRR.Server {
+namespace doob.SignalARRR.Server {
     public class ServerClassCreatorHelper : ClassCreatorHelper {
         private readonly ClientContext _clientContext;
         private readonly ServerPushStreamManager _pushStreamManager;

@@ -6,11 +6,12 @@ using doob.Reflectensions.Common;
 using doob.Reflectensions.ExtensionMethods;
 using Microsoft.Extensions.DependencyInjection;
 using NamedServices.Microsoft.Extensions.DependencyInjection;
+using SignalARRR;
 using SignalARRR.Attributes;
-using SignalARRR.CodeGenerator;
 using SignalARRR.Interfaces;
+using ClassCreator = doob.SignalARRR.Server.CodeGenerator.ClassCreator;
 
-namespace SignalARRR.Server.ExtensionMethods {
+namespace doob.SignalARRR.Server.ExtensionMethods {
     public static class ServiceCollectionExtensions {
         public static IServiceCollection AddSignalARRR(this IServiceCollection serviceCollection, Action<SignalARRRServerOptionsBuilder> options = null) {
 
