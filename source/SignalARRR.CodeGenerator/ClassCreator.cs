@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using doob.Reflectensions.ExtensionMethods;
+using doob.SignalARRR.CodeGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -170,8 +171,21 @@ namespace SignalARRR.CodeGenerator {
             var syntaxtree = CSharpSyntaxTree.ParseText(code);
             var asy = System.Linq.AsyncEnumerable.Range(0, 1);
 
-            var assemblies = 
-                GetNeededAssemblies(FromType)
+            var nAssemblies = new List<Assembly>();
+            nAssemblies.AddRange(AppDomain
+                .CurrentDomain
+                .GetAssemblies());
+            var assFinder = new AssemblyFinder( typeof(Task<>), FromType, typeof(Task));
+            //var neededAssemblies = assFinder.GetNeededAssemblies();
+            ////neededAssemblies.Add(Assembly.GetAssembly(typeof(Task<>)));
+            //neededAssemblies.AddRange(AppDomain
+            //    .CurrentDomain
+            //    .GetAssemblies());
+            nAssemblies.AddRange(assFinder.GetNeededAssemblies());
+
+
+            var assemblies = nAssemblies
+                
                 .Where(p => !p.IsDynamic)
                 .Where(a => !string.IsNullOrEmpty(a.Location))
                 .Select(a => MetadataReference.CreateFromFile(a.Location))
@@ -222,39 +236,6 @@ namespace SignalARRR.CodeGenerator {
 
             var instance = (T)Activator.CreateInstance(t, nargs.ToArray());
             return instance;
-        }
-
-        public static List<Assembly> GetNeededAssemblies(Type type) {
-
-            var l = new List<Assembly>();
-
-            if (!l.Contains(type.Assembly)) {
-                l.Add(type.Assembly);
-            }
-
-            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
-
-            foreach (var methodInfo in methods) {
-                var ml = GetNeededAssemblies(methodInfo.ReturnType);
-                foreach (var assembly in ml)
-                {
-                    if (!l.Contains(assembly)) {
-                        l.Add(assembly);
-                    }
-                }
-
-                foreach (var parameterInfo in methodInfo.GetParameters()) {
-                    var pl = GetNeededAssemblies(parameterInfo.ParameterType);
-                    foreach (var assembly in pl)
-                    {
-                        if (!l.Contains(assembly)) {
-                            l.Add(assembly);
-                        }
-                    }
-                }
-            }
-
-            return l;
         }
     }
 
