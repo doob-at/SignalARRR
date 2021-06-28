@@ -170,9 +170,8 @@ namespace SignalARRR.CodeGenerator {
             var syntaxtree = CSharpSyntaxTree.ParseText(code);
             var asy = System.Linq.AsyncEnumerable.Range(0, 1);
 
-            var assemblies = AppDomain
-                .CurrentDomain
-                .GetAssemblies()
+            var assemblies = 
+                GetNeededAssemblies(FromType)
                 .Where(p => !p.IsDynamic)
                 .Where(a => !string.IsNullOrEmpty(a.Location))
                 .Select(a => MetadataReference.CreateFromFile(a.Location))
@@ -223,6 +222,39 @@ namespace SignalARRR.CodeGenerator {
 
             var instance = (T)Activator.CreateInstance(t, nargs.ToArray());
             return instance;
+        }
+
+        public static List<Assembly> GetNeededAssemblies(Type type) {
+
+            var l = new List<Assembly>();
+
+            if (!l.Contains(type.Assembly)) {
+                l.Add(type.Assembly);
+            }
+
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var methodInfo in methods) {
+                var ml = GetNeededAssemblies(methodInfo.ReturnType);
+                foreach (var assembly in ml)
+                {
+                    if (!l.Contains(assembly)) {
+                        l.Add(assembly);
+                    }
+                }
+
+                foreach (var parameterInfo in methodInfo.GetParameters()) {
+                    var pl = GetNeededAssemblies(parameterInfo.ParameterType);
+                    foreach (var assembly in pl)
+                    {
+                        if (!l.Contains(assembly)) {
+                            l.Add(assembly);
+                        }
+                    }
+                }
+            }
+
+            return l;
         }
     }
 
