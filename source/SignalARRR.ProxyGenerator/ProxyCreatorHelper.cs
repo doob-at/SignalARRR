@@ -14,8 +14,8 @@ namespace doob.SignalARRR.ProxyGenerator {
         public abstract T Invoke<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default);
         public abstract Task<T> InvokeAsync<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default);
 
-        public abstract object Invoke(Type returnType, string methodName, IEnumerable<object> arguments,
-            string[] genericArguments, CancellationToken cancellationToken = default);
+        //public abstract object Invoke(Type returnType, string methodName, IEnumerable<object> arguments,
+        //    string[] genericArguments, CancellationToken cancellationToken = default);
         //public abstract Task<object> InvokeAsync(Type returnType, string methodName, IEnumerable<object> arguments,
         //    string[] genericArguments, CancellationToken cancellationToken = default);
 

@@ -26,14 +26,14 @@ namespace doob.SignalARRR.Server {
             _methodArgumentPreperator = new MethodArgumentPreperator(_clientContext);
         }
 
-        public override object Invoke(Type returnType, string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
-            var methodInfo = typeof(ServerProxyCreatorHelper).GetMethods()
-                .WithName(nameof(InvokeAsync)).First(p => p.HasGenericArgumentsLengthOf(1));
-            var generic = methodInfo.MakeGenericMethod(returnType);
+        //public override object Invoke(Type returnType, string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
+        //    var methodInfo = typeof(ServerProxyCreatorHelper).GetMethods()
+        //        .WithName(nameof(InvokeAsync)).First(p => p.HasGenericArgumentsLengthOf(1));
+        //    var generic = methodInfo.MakeGenericMethod(returnType);
 
-            var parameters = new object[] {methodName, arguments, genericArguments, cancellationToken};
-            return InvokeHelper.InvokeMethod(this, generic, new List<Type>() {returnType}, parameters);
-        }
+        //    var parameters = new object[] {methodName, arguments, genericArguments, cancellationToken};
+        //    return InvokeHelper.InvokeMethod(this, generic, new List<Type>() {returnType}, parameters);
+        //}
 
         public override T Invoke<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
            return SimpleAsyncHelper.RunSync(() => InvokeAsync<T>(methodName, arguments, genericArguments, cancellationToken));
