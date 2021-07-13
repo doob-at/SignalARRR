@@ -2,10 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using doob.Reflectensions;
+using doob.SignalARRR.Common;
+using doob.SignalARRR.Common.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
-using SignalARRR;
-using SignalARRR.Constants;
 
 namespace doob.SignalARRR.Server {
     internal class ClientContextDispatcher<T> : IClientContextDispatcher where T : HARRR {

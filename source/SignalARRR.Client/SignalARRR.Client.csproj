@@ -21,21 +21,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="doob.Reflectensions.CommonExtensions" Version="6.3.4" />
+    <PackageReference Include="doob.Reflectensions.Invoke" Version="6.3.4" />
+    <PackageReference Include="doob.Reflectensions.Json" Version="6.3.4" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="5.0.7" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="doob.Reflectensions.Json" Version="6.2.1-beta0017" />
-    <PackageReference Include="doob.Reflectensions.CommonExtensions" Version="6.2.1-beta0017" />
-    <PackageReference Include="doob.Reflectensions.Invoke" Version="6.2.1-beta0017" />
     <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <ProjectReference Include="..\SignalARRR.CodeGenerator\SignalARRR.CodeGenerator.csproj" />
+    <ProjectReference Include="..\SignalARRR.ProxyGenerator\SignalARRR.ProxyGenerator.csproj" />
     <ProjectReference Include="..\SignalARRR.Common\SignalARRR.Common.csproj" />
   </ItemGroup>
 

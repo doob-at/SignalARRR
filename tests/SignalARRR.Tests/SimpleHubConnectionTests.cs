@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Logging;
-using SignalARRR.Client;
 using Xunit;
 
 namespace SignalARRR.Tests
@@ -24,6 +24,7 @@ namespace SignalARRR.Tests
             hubConnection = new HubConnectionBuilder()
                 .WithUrl($"{testServer.BaseAddress}signalr/testhub", options => {
                     options.HttpMessageHandlerFactory = _ => testServer.CreateHandler();
+                    options.Proxy = new WebProxy("localhost.:8888");
                 }).Build();
             
             

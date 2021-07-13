@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalARRR.Server", "source
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalARRR.Client", "source\SignalARRR.Client\SignalARRR.Client.csproj", "{8F1B1E04-1513-4D98-A112-68BA96D0733E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalARRR.CodeGenerator", "source\SignalARRR.CodeGenerator\SignalARRR.CodeGenerator.csproj", "{C4E06895-A4D0-467C-B8C7-62EA2D6E2B91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalARRR.ProxyGenerator", "source\SignalARRR.ProxyGenerator\SignalARRR.ProxyGenerator.csproj", "{C4E06895-A4D0-467C-B8C7-62EA2D6E2B91}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalARRR.Tests", "tests\SignalARRR.Tests\SignalARRR.Tests.csproj", "{20BAE22B-B5A5-4AA3-AF36-D103071C1995}"
 EndProject

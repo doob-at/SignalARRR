@@ -2,9 +2,9 @@
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using SignalARRR.RemoteReferenceTypes;
+using doob.SignalARRR.Common.RemoteReferenceTypes;
 
-namespace SignalARRR.Client {
+namespace doob.SignalARRR.Client {
     public class StreamReferenceResolver {
 
         private readonly StreamReference _streamReference;

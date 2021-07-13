@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
-namespace SignalARRR.Interfaces {
+namespace doob.SignalARRR.Common.Interfaces {
     public interface ISignalARRRMethodsCollection {
         void AddMethod(string name, MethodInfo methodInfo);
         void AddMethod(string name, MethodInfo methodInfo, object instance);

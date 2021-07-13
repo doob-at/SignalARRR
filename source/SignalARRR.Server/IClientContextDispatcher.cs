@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using doob.SignalARRR.Common;
 using Microsoft.AspNetCore.Http;
-using SignalARRR;
 
 namespace doob.SignalARRR.Server {
     internal interface IClientContextDispatcher {

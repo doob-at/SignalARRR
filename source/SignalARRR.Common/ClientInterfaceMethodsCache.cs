@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace SignalARRR
+namespace doob.SignalARRR.Common
 {
     public class ClientInterfaceMethodsCache {
 

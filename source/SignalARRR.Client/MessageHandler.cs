@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 using doob.Reflectensions;
 using doob.Reflectensions.ExtensionMethods;
 using doob.Reflectensions.Helper;
-using SignalARRR.Client.ExtensionMethods;
-using SignalARRR.Constants;
-using SignalARRR.Interfaces;
-using SignalARRR.RemoteReferenceTypes;
-using TypeHelper = SignalARRR.Helper.TypeHelper;
+using doob.SignalARRR.Client.ExtensionMethods;
+using doob.SignalARRR.Common;
+using doob.SignalARRR.Common.Constants;
+using doob.SignalARRR.Common.Interfaces;
+using doob.SignalARRR.Common.RemoteReferenceTypes;
 
-namespace SignalARRR.Client {
+namespace doob.SignalARRR.Client {
     public class MessageHandler {
         private readonly HARRRContext _harrrContext;
         private ISignalARRRMethodsCollection MethodsCollection { get; set; } = new SignalARRRMethodsCollection();

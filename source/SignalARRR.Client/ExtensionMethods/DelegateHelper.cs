@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
-namespace SignalARRR.Client.ExtensionMethods {
+namespace doob.SignalARRR.Client.ExtensionMethods {
     internal static class DelegateHelper {
 
         public static Delegate CreateDelegate(MethodInfo methodInfo, object target) {

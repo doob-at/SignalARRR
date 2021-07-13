@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SignalARRR {
+namespace doob.SignalARRR.Common {
     public class ServerRequestMessage {
 
         public Guid Id { get; set; }

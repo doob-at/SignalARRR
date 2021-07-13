@@ -1,31 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using doob.Reflectensions.ExtensionMethods;
 using doob.Reflectensions.Helper;
+using doob.SignalARRR.Common;
+using doob.SignalARRR.ProxyGenerator;
 using doob.SignalARRR.Server.ExtensionMethods;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using SignalARRR;
-using ClassCreatorHelper = doob.SignalARRR.Server.CodeGenerator.ClassCreatorHelper;
+
 
 namespace doob.SignalARRR.Server {
-    public class ServerClassCreatorHelper : ClassCreatorHelper {
+    public class ServerProxyCreatorHelper : ProxyCreatorHelper {
         private readonly ClientContext _clientContext;
-        private readonly ServerPushStreamManager _pushStreamManager;
+        //private readonly ServerPushStreamManager _pushStreamManager;
+        private readonly HttpContext? _httpContext;
         private readonly MethodArgumentPreperator _methodArgumentPreperator;
 
-        public ServerClassCreatorHelper(ClientContext clientContext) {
+        public ServerProxyCreatorHelper(ClientContext clientContext, HttpContext? httpContext) {
             _clientContext = clientContext;
-            _pushStreamManager = clientContext.ServiceProvider.GetRequiredService<ServerPushStreamManager>();
+            //_pushStreamManager = clientContext.ServiceProvider.GetRequiredService<ServerPushStreamManager>();
             _methodArgumentPreperator = new MethodArgumentPreperator(_clientContext);
+        }
+
+        public override object Invoke(Type returnType, string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
+            var methodInfo = typeof(ServerProxyCreatorHelper).GetMethods()
+                .WithName(nameof(InvokeAsync)).First(p => p.HasGenericArgumentsLengthOf(1));
+            var generic = methodInfo.MakeGenericMethod(returnType);
+
+            var parameters = new object[] {methodName, arguments, genericArguments, cancellationToken};
+            return InvokeHelper.InvokeMethod(this, generic, new List<Type>() {returnType}, parameters);
         }
 
         public override T Invoke<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
            return SimpleAsyncHelper.RunSync(() => InvokeAsync<T>(methodName, arguments, genericArguments, cancellationToken));
         }
 
-        public override Task<T> InvokeAsync<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
+        //public override Task<object> InvokeAsync(Type returnType, string methodName, IEnumerable<object> arguments,
+        //    string[] genericArguments, CancellationToken cancellationToken = default) {
+
+        //    var methodInfo = typeof(ServerProxyCreatorHelper).GetMethods()
+        //        .WithName(nameof(InvokeAsync)).First(p => p.HasGenericArgumentsLengthOf(1));
+        //    var generic = methodInfo.MakeGenericMethod(returnType);
+
+        //    var parameters = new object[] {methodName, arguments, genericArguments, cancellationToken};
+        //    return InvokeHelper.InvokeMethodAsync(this, generic, new List<Type>() {returnType}, parameters);
+        //}
+
+
+        public override async Task<T> InvokeAsync<T>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
 
             
             var preparedArguments = _methodArgumentPreperator.PrepareArguments(arguments).ToList();
@@ -45,14 +71,21 @@ namespace doob.SignalARRR.Server {
 
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(_clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
-            return harrrContext.InvokeClientAsync<T>(_clientContext.Id, msg, cancellationToken);
+            
+            if(_httpContext != null)
+            {
+                await harrrContext.ProxyClientAsync(_clientContext.Id, msg, _httpContext);
+                return default;
+            }
+
+            return await harrrContext.InvokeClientAsync<T>(_clientContext.Id, msg, cancellationToken);
         }
 
         public override void Send(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
             SimpleAsyncHelper.RunSync(() => SendAsync(methodName, arguments, genericArguments, cancellationToken));
         }
 
-        public override Task SendAsync(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
+        public override async Task SendAsync(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
             var preparedArguments = _methodArgumentPreperator.PrepareArguments(arguments).ToList();
 
             var msg = new ServerRequestMessage(methodName, preparedArguments);
@@ -67,7 +100,8 @@ namespace doob.SignalARRR.Server {
 
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(_clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
-            return harrrContext.SendClientAsync(_clientContext.Id, msg, cancellationToken);
+            await harrrContext.SendClientAsync(_clientContext.Id, msg, cancellationToken);
+            await _httpContext.Ok();
         }
 
         public override IAsyncEnumerable<TResult> StreamAsync<TResult>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {

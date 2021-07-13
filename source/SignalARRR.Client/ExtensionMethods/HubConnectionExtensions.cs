@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
 
-namespace SignalARRR.Client.ExtensionMethods {
+namespace doob.SignalARRR.Client.ExtensionMethods {
     public static class HubConnectionExtensions {
 
         public static IServiceProvider GetServiceProvider(this HubConnection hubConnection) {

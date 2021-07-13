@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace SignalARRR {
+namespace doob.SignalARRR.Common.Interfaces {
     public interface ISignalARRRInterfaceCollection {
         void RegisterType<TInterface, TClass>() where TClass : class, TInterface;
         void RegisterType<TInterface, TClass>(TClass instance) where TClass : class, TInterface;

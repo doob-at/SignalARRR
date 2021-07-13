@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using doob.SignalARRR.Common;
+using doob.SignalARRR.Common.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using SignalARRR;
-using SignalARRR.Constants;
 
 namespace doob.SignalARRR.Server.ExtensionMethods {
     public static class ClientContextExtensions {

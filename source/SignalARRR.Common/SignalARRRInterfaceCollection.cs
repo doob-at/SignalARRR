@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Reflection;
+using doob.SignalARRR.Common.Helper;
+using doob.SignalARRR.Common.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using SignalARRR.Helper;
 
-namespace SignalARRR
+namespace doob.SignalARRR.Common
 {
     public class SignalARRRInterfaceCollection: ISignalARRRInterfaceCollection {
 

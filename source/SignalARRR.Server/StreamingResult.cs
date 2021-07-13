@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Threading;
 using System.Threading.Channels;
-using SignalARRR.Exceptions;
+using doob.SignalARRR.Common.Exceptions;
 
 namespace doob.SignalARRR.Server {
 

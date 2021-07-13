@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
-namespace SignalARRR {
+namespace doob.SignalARRR.Common {
     public class ClientMethodsCache {
 
         public MethodInfo MethodInfo { get; set; }

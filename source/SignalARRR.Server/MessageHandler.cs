@@ -7,16 +7,16 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using doob.Reflectensions.ExtensionMethods;
 using doob.Reflectensions.Helper;
+using doob.SignalARRR.Common;
+using doob.SignalARRR.Common.Exceptions;
+using doob.SignalARRR.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json.Linq;
-using SignalARRR;
-using SignalARRR.Exceptions;
-using SignalARRR.Interfaces;
 using ObservableExtensions = doob.SignalARRR.Server.ExtensionMethods.ObservableExtensions;
-using TypeHelper = SignalARRR.Helper.TypeHelper;
+using TypeHelper = doob.SignalARRR.Common.Helper.TypeHelper;
 
 namespace doob.SignalARRR.Server {
     internal class MessageHandler {

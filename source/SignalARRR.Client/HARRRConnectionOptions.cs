@@ -1,4 +1,4 @@
-﻿namespace SignalARRR.Client
+﻿namespace doob.SignalARRR.Client
 {
     public class HARRRConnectionOptions {
 
