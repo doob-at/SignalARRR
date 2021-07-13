@@ -9,11 +9,14 @@ namespace doob.SignalARRR.ProxyGenerator {
 
         public static T CreateInstanceFromInterface<T>(ProxyCreatorHelper classCreatorHelper) where T : class {
 
-            return (T)generatedTypes.GetOrAdd(typeof(T), type => {
-                var pr = new SignalARRRDynamicProxy<T>(classCreatorHelper);
+            var pr = new SignalARRRDynamicProxy<T>(classCreatorHelper);
 
-                return Impromptu.ActLike<T>(pr);
-            });
+            return Impromptu.ActLike<T>(pr);
+            //return (T)generatedTypes.GetOrAdd(typeof(T), type => {
+            //    var pr = new SignalARRRDynamicProxy<T>(classCreatorHelper);
+
+            //    return Impromptu.ActLike<T>(pr);
+            //});
 
         }
     }

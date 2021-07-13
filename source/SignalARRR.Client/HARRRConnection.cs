@@ -17,25 +17,30 @@ namespace doob.SignalARRR.Client {
         private ConcurrentDictionary<string, Delegate> ServerRequestHandlers { get; } = new ConcurrentDictionary<string, Delegate>();
         private HARRRContext _harrrContext { get; }
 
+        
+
         public HARRRConnection(HARRRContext harrrContext) {
 
             _harrrContext = harrrContext;
             HubConnection = harrrContext.GetHubConnection();
 
 
-            this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication, (requestMessage) => _harrrContext.MessageHandler.ChallengeAuthentication(requestMessage));
+            this.On<ServerRequestMessage>(MethodNames.ChallengeAuthentication, (requestMessage) => {
+                return _harrrContext.MessageHandler.ChallengeAuthentication(requestMessage);
+            });
 
             this.On<ServerRequestMessage>(MethodNames.CancelTokenFromServer, (requestMessage) => _harrrContext.MessageHandler.CancelTokenFromServer(requestMessage));
 
 #pragma warning disable 4014
             this.On<ServerRequestMessage>(MethodNames.InvokeServerRequest,
                  (requestMessage) => {
-
+                     OnServerRequestMessage?.Invoke(null, new ServerRequestEventArgs(requestMessage)); 
                      _harrrContext.MessageHandler.InvokeServerRequest(requestMessage);
                  });
 
             this.On<ServerRequestMessage>(MethodNames.InvokeServerMessage,
                  (requestMessage) => {
+                     OnServerRequestMessage?.Invoke(null, new ServerRequestEventArgs(requestMessage)); 
                      _harrrContext.MessageHandler.InvokeServerMessage(requestMessage);
 
                  });

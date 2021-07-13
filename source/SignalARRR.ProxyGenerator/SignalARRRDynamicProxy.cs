@@ -9,7 +9,7 @@ using doob.Reflectensions.ExtensionMethods;
 using TaskExtensions = doob.Reflectensions.ExtensionMethods.TaskExtensions;
 
 namespace doob.SignalARRR.ProxyGenerator {
-    public class SignalARRRDynamicProxy<T>: DynamicObject {
+    public class SignalARRRDynamicProxy<T> : DynamicObject {
         private readonly ProxyCreatorHelper _classCreatorHelper;
 
 
@@ -17,18 +17,19 @@ namespace doob.SignalARRR.ProxyGenerator {
             _classCreatorHelper = classCreatorHelper;
         }
 
-        
+
         public override bool TryInvokeMember(InvokeMemberBinder binder, object?[]? args, out object? result) {
 
-            
+
             var argumentTypes = binder.Reflect().GetPropertyValue<Type[]>("TypeArguments")!;
             var parameterTypes = args?.Where(a => a != null).Select(a => a!.GetType()).ToArray() ?? new Type[0];
-            var methods = typeof(T).GetMethods()
-                .WithName(binder.Name)
-                .Where(m => m.HasGenericArgumentsLengthOf(argumentTypes.Length))
-                .WithParametersOfType(parameterTypes).ToList();
+            var methods = typeof(T).GetMethods().ToList();
+            methods = methods.WithName(binder.Name).ToList();
+            methods = methods.Where(m => m.HasGenericArgumentsLengthOf(argumentTypes.Length)).ToList();
+            //methods = methods.WithParametersLengthOf(parameterTypes.Length).ToList();
 
-            var methodCount = methods.Count();
+            var methodsList = methods.ToList();
+            var methodCount = methodsList.Count();
             if (methodCount == 0) {
                 throw new Exception($"No matching Methods with Name '{binder.Name}' found!");
             }
@@ -61,46 +62,50 @@ namespace doob.SignalARRR.ProxyGenerator {
                 var stream = _classCreatorHelper.StreamAsync<T>(methodName, args!, genericArguments, cancellationToken);
                 switch (isStreamingMethod.StreamingType) {
                     case StreamingType.ChannelReader: {
-                        result = _classCreatorHelper.ToChannelReader(stream, cancellationToken);
-                        return true;
-                    }
+                            result = _classCreatorHelper.ToChannelReader(stream, cancellationToken);
+                            return true;
+                        }
                     case StreamingType.AsyncEnumerable: {
-                        result = stream;
-                        return true;
-                    }
+                            result = stream;
+                            return true;
+                        }
                     case StreamingType.Observable: {
-                        result = AsyncEnumerable.ToObservable(stream);
-                        return true;
-                    }
+                            result = AsyncEnumerable.ToObservable(stream);
+                            return true;
+                        }
                 }
-            }else {
+            } else {
 
                 if (isTaskOfT) {
 
                     var returnType = methodInfo.ReturnType.GetGenericArguments()[0];
 
                     var genericInvokeMethodInfo = _classCreatorHelper.GetType().GetMethod("InvokeAsync")!.MakeGenericMethod(returnType);
-                    var task = (Task)genericInvokeMethodInfo.Invoke(_classCreatorHelper, new object[]{methodName, args!, genericArguments, cancellationToken});
+                    var task = (Task)genericInvokeMethodInfo.Invoke(_classCreatorHelper, new object[] { methodName, args!, genericArguments, cancellationToken });
                     var genericInvokeMethodInfo2 = (typeof(TaskExtensions)).GetMethod("CastToTaskOf")!.MakeGenericMethod(returnType);
 
-                    result = genericInvokeMethodInfo2.Invoke(null, new object[]{task});
+                    result = genericInvokeMethodInfo2.Invoke(null, new object[] { task });
                     return true;
                 } else {
-                    result = _classCreatorHelper.Invoke(methodInfo.ReturnType ,methodName, args!, genericArguments, cancellationToken);
+                    var returnType = methodInfo.ReturnType;
+                    var genericInvokeMethodInfo = _classCreatorHelper.GetType().GetMethod("Invoke")!.MakeGenericMethod(returnType);
+
+                    result = genericInvokeMethodInfo.Invoke(_classCreatorHelper,
+                        new object[] { methodName, args!, genericArguments, cancellationToken });
                     return true;
                 }
             }
 
             Console.WriteLine($"Invoked Method: {methodInfo}");
-            
+
 
             result = null;
             return false;
-            
+
         }
 
         public static object CastToTaskOf(Task task, Type type) =>
-            task.ContinueWith(t => 
+            task.ContinueWith(t =>
                 t.Reflect().GetPropertyValue("Result")?.Reflect().To(type)
             );
 
@@ -123,6 +128,6 @@ namespace doob.SignalARRR.ProxyGenerator {
             return (false, StreamingType.None);
 
         }
-       
+
     }
 }
