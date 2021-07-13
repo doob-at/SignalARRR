@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
+using doob.SignalARRR.Client;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Logging;
-using SignalARRR.Client;
 using Xunit;
 
 namespace SignalARRR.Tests
@@ -24,6 +25,7 @@ namespace SignalARRR.Tests
             harrrConnection = HARRRConnection.Create(builder => {
                 builder.WithUrl($"{testServer.BaseAddress}signalr/testhub", options => {
                     options.HttpMessageHandlerFactory = _ => testServer.CreateHandler();
+                    options.Proxy = new WebProxy("localhost.:8888");
                 });
             });
             

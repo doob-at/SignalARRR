@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SignalARRR.CodeGenerator {
+﻿namespace doob.SignalARRR.ProxyGenerator {
     public enum StreamingType {
 
         None,

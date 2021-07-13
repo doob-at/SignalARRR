@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace SignalARRR.Client {
+namespace doob.SignalARRR.Client {
     public partial class HARRRConnection {
 
         

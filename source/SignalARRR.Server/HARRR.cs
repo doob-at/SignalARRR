@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using doob.Reflectensions;
+using doob.SignalARRR.Common;
+using doob.SignalARRR.Common.Interfaces;
 using doob.SignalARRR.Server.ExtensionMethods;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NamedServices.Microsoft.Extensions.DependencyInjection;
-using SignalARRR;
-using SignalARRR.Interfaces;
 
 namespace doob.SignalARRR.Server {
     public abstract class HARRR : Hub {
@@ -35,7 +35,7 @@ namespace doob.SignalARRR.Server {
             
 
             ClientManager = serviceProvider.GetRequiredService<IHARRRClientManager>();
-            Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(this.GetType().FullName) ?? NullLogger.Instance;
+            Logger =  NullLogger.Instance;
 
             MethodsCollection = serviceProvider.GetNamedService<ISignalARRRMethodsCollection>(this.GetType().FullName) ?? new SignalARRRMethodsCollection();
             //(ISignalARRRServerMethodsCollection)serviceProvider.GetRequiredService(

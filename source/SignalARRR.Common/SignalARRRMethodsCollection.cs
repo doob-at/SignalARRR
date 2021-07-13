@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using SignalARRR.Interfaces;
+using doob.SignalARRR.Common.Interfaces;
 
-namespace SignalARRR {
+namespace doob.SignalARRR.Common {
     public class SignalARRRMethodsCollection: ISignalARRRMethodsCollection {
 
         private readonly ConcurrentDictionary<string, (Delegate Factory, MethodInfo MethodInfo)> _collection = new ConcurrentDictionary<string, (Delegate Factory, MethodInfo MethodInfo)>();

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using doob.Reflectensions.Common;
+using doob.SignalARRR.ProxyGenerator;
 using doob.SignalARRR.Server.ExtensionMethods;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +14,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using ClassCreator = doob.SignalARRR.Server.CodeGenerator.ClassCreator;
+
 
 namespace doob.SignalARRR.Server {
 
@@ -125,13 +126,13 @@ namespace doob.SignalARRR.Server {
         }
 
 
-        public T GetTypedMethods<T>() {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorHelper(this));
+        public T GetTypedMethods<T>() where T : class {
+            var instance = ProxyCreator.CreateInstanceFromInterface<T>(new ServerProxyCreatorHelper(this, null));
             return instance;
         }
 
-        public void ProxyToHttpContext<T>(HttpContext httpContext, Action<T> action) {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ServerClassCreatorProxyHelper(this, httpContext));
+        public void ForwardToHttpContext<T>(HttpContext httpContext, Action<T> action) where T : class {
+            var instance = ProxyCreator.CreateInstanceFromInterface<T>(new ServerProxyCreatorHelper(this, httpContext));
             action(instance);
         }
     }

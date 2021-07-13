@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace SignalARRR.Client.ExtensionMethods {
+namespace doob.SignalARRR.Client.ExtensionMethods {
 
     
     public static class LoggerExtensions {

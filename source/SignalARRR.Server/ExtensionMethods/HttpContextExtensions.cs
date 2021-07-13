@@ -18,9 +18,9 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
         }
 
         public static void ProxyFromHARRRClient<TInterface>(this HttpContext httpContext, ClientContext clientContext,
-            Action<TInterface> action) {
+            Action<TInterface> action) where TInterface : class {
 
-            clientContext.ProxyToHttpContext(httpContext, action);
+            clientContext.ForwardToHttpContext(httpContext, action);
 
         }
 

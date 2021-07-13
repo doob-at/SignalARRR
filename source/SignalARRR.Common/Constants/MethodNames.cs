@@ -1,4 +1,4 @@
-﻿namespace SignalARRR.Constants
+﻿namespace doob.SignalARRR.Common.Constants
 {
     public class MethodNames
     {

@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using doob.Reflectensions.Common;
+using doob.SignalARRR.Client.ExtensionMethods;
+using doob.SignalARRR.Common;
+using doob.SignalARRR.Common.Constants;
+using doob.SignalARRR.ProxyGenerator;
 using Microsoft.AspNetCore.SignalR.Client;
 
-using SignalARRR.Client.ExtensionMethods;
-using SignalARRR.CodeGenerator;
-using SignalARRR.Constants;
-
-namespace SignalARRR.Client {
+namespace doob.SignalARRR.Client {
     public partial class HARRRConnection {
         private HubConnection HubConnection { get; }
         private ConcurrentDictionary<string, Delegate> ServerRequestHandlers { get; } = new ConcurrentDictionary<string, Delegate>();
@@ -48,8 +48,8 @@ namespace SignalARRR.Client {
         //    return this;
         //}
 
-        public T GetTypedMethods<T>() {
-            var instance = ClassCreator.CreateInstanceFromInterface<T>(new ClientClassCreatorHelper(this));
+        public T GetTypedMethods<T>() where T : class {
+            var instance =  ProxyCreator.CreateInstanceFromInterface<T>(new ClientProxyCreatorHelper(this));
             return instance;
         }
 

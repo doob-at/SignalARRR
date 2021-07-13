@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace SignalARRR.Client {
+namespace doob.SignalARRR.Client {
 
     public static class HARRRConnectionExtensions {
         private static IDisposable On(

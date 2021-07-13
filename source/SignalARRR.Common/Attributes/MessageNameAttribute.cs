@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SignalARRR.Attributes
+namespace doob.SignalARRR.Common.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class MessageNameAttribute : Attribute

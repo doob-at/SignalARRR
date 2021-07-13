@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SignalARRR.Helper {
+namespace doob.SignalARRR.Common.Helper {
     public class TypeHelper {
 
         private static Dictionary<string, Type> TypeFromString { get; } = new Dictionary<string, Type>();

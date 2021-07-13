@@ -4,12 +4,12 @@ using System.Linq;
 using System.Reflection;
 using doob.Reflectensions.Common;
 using doob.Reflectensions.ExtensionMethods;
+using doob.SignalARRR.Common;
+using doob.SignalARRR.Common.Attributes;
+using doob.SignalARRR.Common.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using NamedServices.Microsoft.Extensions.DependencyInjection;
-using SignalARRR;
-using SignalARRR.Attributes;
-using SignalARRR.Interfaces;
-using ClassCreator = doob.SignalARRR.Server.CodeGenerator.ClassCreator;
+
 
 namespace doob.SignalARRR.Server.ExtensionMethods {
     public static class ServiceCollectionExtensions {
@@ -25,9 +25,9 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
             serviceCollection.AddSingleton<ClientManager>(sp => new ClientManager(sp.GetRequiredService<IHARRRClientManager>()));
             serviceCollection.AddTransient(typeof(ClientContextDispatcher<>));
 
-            foreach (var type in serverOptions.PreBuiltClientMethods) {
-                ClassCreator.CreateTypeFromInterface(type);
-            }
+            //foreach (var type in serverOptions.PreBuiltClientMethods) {
+            //    ClassCreator.CreateTypeFromInterface(type);
+            //}
             return serviceCollection;
         }
 

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using doob.SignalARRR.Common.RemoteReferenceTypes;
 using Microsoft.Extensions.DependencyInjection;
-using SignalARRR.RemoteReferenceTypes;
 
 namespace doob.SignalARRR.Server {
     public class MethodArgumentPreperator {

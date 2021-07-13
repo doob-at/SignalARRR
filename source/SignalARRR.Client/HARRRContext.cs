@@ -3,12 +3,12 @@ using System.Net;
 using System.Threading.Tasks;
 using doob.Reflectensions.Common.Helper;
 using doob.Reflectensions.ExtensionMethods;
+using doob.SignalARRR.Client.ExtensionMethods;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.DependencyInjection;
-using SignalARRR.Client.ExtensionMethods;
 
-namespace SignalARRR.Client {
+namespace doob.SignalARRR.Client {
     public class HARRRContext {
         private readonly IServiceProvider _serviceProvider;
         

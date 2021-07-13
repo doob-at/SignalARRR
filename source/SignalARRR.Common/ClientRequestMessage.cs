@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SignalARRR {
+namespace doob.SignalARRR.Common {
     public class ClientRequestMessage {
         public string Method { get; set; }
         public string Authorization { get; set; }
