@@ -11,7 +11,7 @@ namespace doob.SignalARRR.Common
 
         private ConcurrentDictionary<Type, ClientInterfaceMethodsCache> RegisteredTypes = new ConcurrentDictionary<Type, ClientInterfaceMethodsCache>();
 
-        public void RegisterType<TInterface, TClass>() where TClass : class, TInterface {
+        public void RegisterInterface<TInterface, TClass>() where TClass : class, TInterface {
 
             TClass Factory(IServiceProvider sp) {
                 var fromServiceProvider = sp.GetService(typeof(TClass));
@@ -22,13 +22,13 @@ namespace doob.SignalARRR.Common
                 return Activator.CreateInstance<TClass>();
             }
 
-            RegisterType<TInterface, TClass>((Func<IServiceProvider, TClass>) Factory);
+            RegisterInterface<TInterface, TClass>((Func<IServiceProvider, TClass>) Factory);
         }
-        public void RegisterType<TInterface, TClass>(TClass instance) where TClass : class, TInterface {
+        public void RegisterInterface<TInterface, TClass>(TClass instance) where TClass : class, TInterface {
 
-            RegisterType<TInterface, TClass>((sp) => instance);
+            RegisterInterface<TInterface, TClass>((sp) => instance);
         }
-        public void RegisterType<TInterface, TClass>(Func<IServiceProvider, TClass> factory)
+        public void RegisterInterface<TInterface, TClass>(Func<IServiceProvider, TClass> factory)
             where TClass : class, TInterface {
             
             RegisteredTypes.AddOrUpdate(typeof(TInterface),

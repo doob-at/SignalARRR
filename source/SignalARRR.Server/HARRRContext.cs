@@ -6,6 +6,7 @@ using doob.SignalARRR.Common;
 using doob.SignalARRR.Common.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 
 namespace doob.SignalARRR.Server {
     internal class ClientContextDispatcher<T> : IClientContextDispatcher where T : HARRR {
@@ -85,8 +86,9 @@ namespace doob.SignalARRR.Server {
 
 
             var jToken = await m.Task;
-           
-            return Json.Converter.ToObject<TResult>(jToken);
+            //var z = jToken.ToString();
+            //var t = jToken.ToObject<TResult>();
+            return Json.Converter.ToObject<TResult>(jToken.ToString());
 
         }
 
