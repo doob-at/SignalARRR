@@ -113,19 +113,36 @@ namespace doob.SignalARRR.Client {
         //}
 
 
-        public void RegisterType<TInterface, TClass>() where TClass : class, TInterface {
-            InterfaceCollection.RegisterType<TInterface, TClass>();
+        public void RegisterInterface<TInterface, TClass>() where TClass : class, TInterface {
+            InterfaceCollection.RegisterInterface<TInterface, TClass>();
         }
-        public void RegisterType<TInterface, TClass>(TClass instance) where TClass : class, TInterface {
+        public void RegisterInterface<TInterface, TClass>(TClass instance) where TClass : class, TInterface {
 
-            InterfaceCollection.RegisterType<TInterface, TClass>(instance);
+            InterfaceCollection.RegisterInterface<TInterface, TClass>(instance);
         }
 
-        public void RegisterType<TInterface, TClass>(Func<IServiceProvider, TClass> factory)
+        public void RegisterInterface<TInterface, TClass>(Func<IServiceProvider, TClass> factory)
             where TClass : class, TInterface {
 
-            InterfaceCollection.RegisterType<TInterface, TClass>(factory);
+            InterfaceCollection.RegisterInterface<TInterface, TClass>(factory);
         }
+
+
+        public void RegisterInterface(Type interfaceType, Type instanceType) {
+            
+            InterfaceCollection.RegisterInterface(interfaceType, instanceType);
+        }
+
+        public void RegisterInterface(Type interfaceType, object instance) {
+            InterfaceCollection.RegisterInterface(interfaceType, instance);
+        }
+
+        public void RegisterInterface(Type interfaceType, Func<IServiceProvider, object> factory) {
+            InterfaceCollection.RegisterInterface(interfaceType, factory);
+        }
+
+
+       
 
 
         //public void RegisterISignalARRRClientMethodsCollection(ISignalARRRClientMethodsCollection methodsCollection) {
