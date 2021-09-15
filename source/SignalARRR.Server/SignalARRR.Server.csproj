@@ -29,9 +29,9 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
     <PackageReference Include="NamedServices.Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="doob.Reflectensions.Json" Version="6.3.4" />
-    <PackageReference Include="doob.Reflectensions.Invoke" Version="6.3.4" />
-    <PackageReference Include="doob.Reflectensions.CommonExtensions" Version="6.3.4" />
+    <PackageReference Include="doob.Reflectensions.Json" Version="6.3.5" />
+    <PackageReference Include="doob.Reflectensions.Invoke" Version="6.3.5" />
+    <PackageReference Include="doob.Reflectensions.CommonExtensions" Version="6.3.5" />
     <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
     
     <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
