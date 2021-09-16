@@ -88,7 +88,7 @@ namespace doob.SignalARRR.Server {
             var jToken = await m.Task;
             //var z = jToken.ToString();
             //var t = jToken.ToObject<TResult>();
-            return Json.Converter.ToObject<TResult>(jToken.ToString());
+            return Json.Converter.ToObject<TResult>(jToken);
 
         }
 

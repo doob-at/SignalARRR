@@ -10,5 +10,8 @@ namespace SignalARRR.Tests.SharedModels {
         string GetName();
 
         Task<string> GetNameAsync();
+
+        Guid GetGuid();
+        Task<Guid> GetGuidAsync();
     }
 }

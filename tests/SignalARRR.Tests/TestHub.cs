@@ -24,5 +24,13 @@ namespace SignalARRR.Tests {
         public Task<string> GetNameAsync() {
             return Task.FromResult("MyNameAsync");
         }
+
+        public Guid GetGuid() {
+            return Guid.NewGuid();
+        }
+
+        public Task<Guid> GetGuidAsync() {
+            return Task.FromResult(Guid.NewGuid());
+        }
     }
 }
