@@ -24,6 +24,7 @@ namespace doob.SignalARRR.Server {
             _clientContext = clientContext;
             //_pushStreamManager = clientContext.ServiceProvider.GetRequiredService<ServerPushStreamManager>();
             _methodArgumentPreperator = new MethodArgumentPreperator(_clientContext);
+            _httpContext = httpContext;
         }
 
         //public override object Invoke(Type returnType, string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
@@ -101,7 +102,10 @@ namespace doob.SignalARRR.Server {
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(_clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
             await harrrContext.SendClientAsync(_clientContext.Id, msg, cancellationToken);
-            await _httpContext.Ok();
+            if (_httpContext != null) {
+                await _httpContext.Ok();
+            }
+            
         }
 
         public override IAsyncEnumerable<TResult> StreamAsync<TResult>(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {

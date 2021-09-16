@@ -32,5 +32,13 @@ namespace SignalARRR.Tests {
         public Task<Guid> GetGuidAsync() {
             return Task.FromResult(Guid.NewGuid());
         }
+
+        public void Nothing() {
+            
+        }
+
+        public Task NothingAsync() {
+            return Task.CompletedTask;
+        }
     }
 }

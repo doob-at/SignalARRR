@@ -13,5 +13,9 @@ namespace SignalARRR.Tests.SharedModels {
 
         Guid GetGuid();
         Task<Guid> GetGuidAsync();
+
+        void Nothing();
+
+        Task NothingAsync();
     }
 }
