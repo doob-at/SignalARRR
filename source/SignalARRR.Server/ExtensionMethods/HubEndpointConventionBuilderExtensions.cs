@@ -43,7 +43,7 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
 
         public static async Task InvokeResponse(HttpContext context) {
 
-            context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 100_000_000;
+            context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = null;
             var requestManager = context.RequestServices.GetRequiredService<ServerRequestManager>();
             var id = context.Request.RouteValues["id"].ToString().ToGuid();
             var error = context.Request.Query["error"].ToString().ToNull();
