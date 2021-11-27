@@ -5,23 +5,41 @@ using System.Threading.Tasks;
 
 namespace doob.SignalARRR.Common {
     public class ClientRequestMessage {
+        public string? InterfaceType { get; set; }
         public string Method { get; set; }
-        public string Authorization { get; set; }
-        public object[] Arguments { get; set; }
-        public string[] GenericArguments { get; set; }
+        public string? Authorization { get; set; }
+        public object[]? Arguments { get; set; }
+        public string[]? GenericArguments { get; set; }
 
-        public ClientRequestMessage() { }
+        //public ClientRequestMessage() { }
+
+        //public ClientRequestMessage(Type interfaceType) {
+        //    InterfaceType = interfaceType.FullName;
+        //}
 
         public ClientRequestMessage(string methodName) {
+            
+            if (methodName.Contains("|")) {
+                InterfaceType = methodName.Split('|')[0];
+                methodName = methodName.Split('|')[1];
+            }
+
             Method = methodName;
         }
 
-        public ClientRequestMessage(string methodName, IEnumerable<object> arguments) : this(methodName) {
-            Arguments = arguments.ToArray();
+
+        public ClientRequestMessage WithArguments(params object[] arguments) {
+            return WithArguments(arguments.ToList());
         }
 
-        public ClientRequestMessage(string methodName, params object[] arguments) : this(methodName, arguments.ToList()) {
+        public ClientRequestMessage WithArguments(IEnumerable<object> arguments) {
+            Arguments = arguments.ToArray();
+            return this;
+        }
 
+        public ClientRequestMessage WithInterface(Type interfaceType) {
+            InterfaceType = interfaceType.FullName;
+            return this;
         }
 
         public ClientRequestMessage WithAuthorization(string authorization) {

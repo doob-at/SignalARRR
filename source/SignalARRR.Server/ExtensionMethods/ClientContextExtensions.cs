@@ -18,7 +18,7 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
             
-            var msg = new ServerRequestMessage(method, arguments);
+            var msg = new ServerRequestMessage(method).WithArguments(arguments);
             var res = await harrrContext.InvokeClientAsync<TResult>(clientContext.Id, msg, cancellationToken);
             return new ClientCollectionResult<TResult>(clientContext.Id, res);
 
@@ -31,7 +31,7 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
 
-            var msg = new ServerRequestMessage(MethodNames.CancelTokenFromServer, tokenReference);
+            var msg = new ServerRequestMessage(MethodNames.CancelTokenFromServer).WithArguments(tokenReference);
 
             await harrrContext.CancelToken(clientContext.Id, tokenReference);
         }
@@ -42,7 +42,7 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
 
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
-            var msg = new ServerRequestMessage(method, arguments);
+            var msg = new ServerRequestMessage(method).WithArguments(arguments);
             await harrrContext.ProxyClientAsync(clientContext.Id, msg, httpContext);
             
         }

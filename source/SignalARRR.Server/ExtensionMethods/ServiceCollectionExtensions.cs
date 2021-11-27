@@ -101,6 +101,7 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
 
                     var rootName = type.GetCustomAttribute<MessageNameAttribute>()?.Name ?? type.Name;
                     var methodsWithName = type.GetMethods().Select(m => (MethodInfo: m, Attribute: m.GetCustomAttribute<MessageNameAttribute>()));
+                    
                     foreach (var (methodInfo, methodNameAttribute) in methodsWithName) {
                         var methodName = methodNameAttribute?.Name ?? methodInfo.Name;
                         var concatNames = $"{rootName}.{methodName}";

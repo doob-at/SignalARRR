@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace doob.SignalARRR.Client {
     public class HARRRContext {
-        private readonly IServiceProvider _serviceProvider;
+        internal readonly IServiceProvider ServiceProvider;
         
         public Uri BaseUrl { get;}
 
@@ -22,17 +22,17 @@ namespace doob.SignalARRR.Client {
         public MessageHandler MessageHandler { get; }
 
         public HARRRContext(IServiceProvider serviceProvider, HARRRConnectionOptions options) {
-            _serviceProvider = serviceProvider;
+            ServiceProvider = serviceProvider;
 
             BaseUrl = GetBaseUrl();
-            HubProtocolType = Enum<HubProtocolType>.Find(_serviceProvider.GetRequiredService<IHubProtocol>().GetType().Name);
+            HubProtocolType = Enum<HubProtocolType>.Find(ServiceProvider.GetRequiredService<IHubProtocol>().GetType().Name);
             UseHttpResponse = options.HttpResponse;
             AccessTokenProvider = GetHubConnection().GetAccessTokenProvider() ?? (() => Task.FromResult<string>(null));
             MessageHandler = new MessageHandler(this);
         }
 
         private Uri GetBaseUrl() {
-            var endPoint = _serviceProvider.GetRequiredService<EndPoint>();
+            var endPoint = ServiceProvider.GetRequiredService<EndPoint>();
             return endPoint.Reflect().GetPropertyValue<Uri>("Uri");
         }
 
@@ -49,7 +49,7 @@ namespace doob.SignalARRR.Client {
         }
 
         public HubConnection GetHubConnection() {
-            return _serviceProvider.GetRequiredService<HubConnection>();
+            return ServiceProvider.GetRequiredService<HubConnection>();
         }
 
     }

@@ -17,5 +17,9 @@ namespace SignalARRR.Tests.SharedModels {
         void Nothing();
 
         Task NothingAsync();
+
+        string SameName();
+        bool SameName(bool value);
+        bool SameName(bool value, int i);
     }
 }

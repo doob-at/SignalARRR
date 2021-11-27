@@ -57,7 +57,7 @@ namespace doob.SignalARRR.Server {
             
             var preparedArguments = _methodArgumentPreperator.PrepareArguments(arguments).ToList();
 
-            var msg = new ServerRequestMessage(methodName, preparedArguments);
+            var msg = new ServerRequestMessage(methodName).WithArguments(preparedArguments);
             if (cancellationToken != CancellationToken.None) {
                 msg.CancellationGuid = Guid.NewGuid();
                 cancellationToken.Register(() => {
@@ -89,7 +89,7 @@ namespace doob.SignalARRR.Server {
         public override async Task SendAsync(string methodName, IEnumerable<object> arguments, string[] genericArguments, CancellationToken cancellationToken = default) {
             var preparedArguments = _methodArgumentPreperator.PrepareArguments(arguments).ToList();
 
-            var msg = new ServerRequestMessage(methodName, preparedArguments);
+            var msg = new ServerRequestMessage(methodName).WithArguments(preparedArguments);
             if (cancellationToken != CancellationToken.None) {
                 msg.CancellationGuid = Guid.NewGuid();
 #pragma warning disable 4014

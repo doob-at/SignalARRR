@@ -140,12 +140,12 @@ namespace doob.SignalARRR.Client {
         }
 
         public async Task<object> InvokeCoreAsync(string methodName, Type returnType, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName).WithArguments(args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageResultOnServer, returnType, new object[] { msg }, cancellationToken);
         }
 
         public async Task InvokeCoreAsync(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName).WithArguments(args).WithAuthorization(_harrrContext.AccessTokenProvider);
             await HubConnection.InvokeCoreAsync(MethodNames.InvokeMessageOnServer, new object[] { msg }, cancellationToken);
         }
 
@@ -155,7 +155,7 @@ namespace doob.SignalARRR.Client {
             return resultMsg;
         }
         public async Task<TResult> InvokeCoreAsync<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName).WithArguments(args).WithAuthorization(_harrrContext.AccessTokenProvider);
             var resultMsg = await HubConnection.InvokeCoreAsync<TResult>(MethodNames.InvokeMessageResultOnServer, new object[] { msg }, cancellationToken);
             return resultMsg;
         }
@@ -166,7 +166,7 @@ namespace doob.SignalARRR.Client {
         }
 
         public Task SendCoreAsync(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName).WithArguments(args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.SendCoreAsync(MethodNames.SendMessageToServer, new object[] { msg }, cancellationToken);
         }
 
@@ -176,17 +176,17 @@ namespace doob.SignalARRR.Client {
         }
 
         public IAsyncEnumerable<TResult> StreamAsyncCore<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName).WithArguments(args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.StreamAsyncCore<TResult>(MethodNames.StreamMessageFromServer, new object[] { msg }, cancellationToken);
         }
 
         public Task<ChannelReader<object>> StreamAsChannelCoreAsync(string methodName, Type returnType, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName).WithArguments(args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return HubConnection.StreamAsChannelCoreAsync(MethodNames.StreamMessageFromServer, returnType, new object[] { msg }, cancellationToken);
         }
 
         public async Task<ChannelReader<TResult>> StreamAsChannelCoreAsync<TResult>(string methodName, object[] args, CancellationToken cancellationToken = default) {
-            var msg = new ClientRequestMessage(methodName, args).WithAuthorization(_harrrContext.AccessTokenProvider);
+            var msg = new ClientRequestMessage(methodName).WithArguments(args).WithAuthorization(_harrrContext.AccessTokenProvider);
             return await HubConnection.StreamAsChannelCoreAsync<TResult>(MethodNames.StreamMessageFromServer, new object[] { msg }, cancellationToken);
         }
 

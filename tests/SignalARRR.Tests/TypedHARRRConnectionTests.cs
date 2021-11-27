@@ -55,5 +55,20 @@ namespace SignalARRR.Tests
 
             Assert.Equal("MyNameAsync", name);
         }
+
+
+        [Fact]
+        public async Task TestSameName() {
+
+            var serverMethods = await GetTypeConnection<ITestServerMethods>();
+            var name = serverMethods.SameName();
+            var b1 = serverMethods.SameName(true);
+            var b2 = serverMethods.SameName(false, 5);
+
+
+            Assert.Equal("OK", name);
+            Assert.True(b1);
+            Assert.False(b2);
+        }
     }
 }

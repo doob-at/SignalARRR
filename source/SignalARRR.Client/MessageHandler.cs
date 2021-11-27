@@ -172,25 +172,28 @@ namespace doob.SignalARRR.Client {
 
         private Task<object> InvokeAsync(ServerRequestMessage serverRequestMessage) {
 
-            if (serverRequestMessage.Method.Contains("|")) {
-                return InvokeInterfaceMethodAsync(serverRequestMessage);
-            }
-
-            return InvokeMethodAsync(serverRequestMessage);
+            //if (String.IsNullOrWhiteSpace(serverRequestMessage.InterfaceType)) {
+            //    return InvokeMethodAsync(serverRequestMessage);
+            //}
+            return InvokeInterfaceMethodAsync(serverRequestMessage);
+            
         }
-        private async Task<object> InvokeMethodAsync(ServerRequestMessage serverRequestMessage) {
+        //private async Task<object> InvokeMethodAsync(ServerRequestMessage serverRequestMessage) {
 
            
 
-            var methodCallInfo = MethodsCollection.GetMethodInformations(serverRequestMessage.Method);
+        //    var methodCallInfo = MethodsCollection.GetMethodInformations(serverRequestMessage.Method);
             
-            var instance = methodCallInfo.Factory.DynamicInvoke(_harrrContext.GetHubConnection().GetServiceProvider());
+        //    var instance = methodCallInfo.Factory.DynamicInvoke(_harrrContext.GetHubConnection().GetServiceProvider());
 
-            return InvokeMethodInfoAsync(instance, methodCallInfo.MethodInfo, serverRequestMessage.Arguments, serverRequestMessage.GenericArguments, serverRequestMessage.CancellationGuid);
+        //    return InvokeMethodInfoAsync(instance, methodCallInfo.MethodInfo, serverRequestMessage.Arguments, serverRequestMessage.GenericArguments, serverRequestMessage.CancellationGuid);
 
-        }
+        //}
 
         private Task<object> InvokeInterfaceMethodAsync(ServerRequestMessage serverRequestMessage) {
+
+            var interfaceType = Type.GetType(serverRequestMessage.InterfaceType);
+            var interfaceInstance = _harrrContext.ServiceProvider.GetService(interfaceType);
             
             var invokeInfos = InterfaceCollection.GetInvokeInformation(serverRequestMessage.Method);
             var instance = invokeInfos.Factory.DynamicInvoke(_harrrContext.GetHubConnection().GetServiceProvider());
