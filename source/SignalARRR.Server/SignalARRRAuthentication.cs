@@ -13,13 +13,13 @@ using Microsoft.Extensions.DependencyInjection;
 namespace doob.SignalARRR.Server {
     public class SignalARRRAuthentication {
 
-        private IAuthenticationSchemeProvider _schemes { get; }
+        //private IAuthenticationSchemeProvider? _schemes { get; }
 
         private IServiceProvider _serviceProvider;
 
         public SignalARRRAuthentication(IServiceProvider serviceProvider) {
             _serviceProvider = serviceProvider;
-            _schemes = _serviceProvider.GetRequiredService<IAuthenticationSchemeProvider>();
+            //_schemes = _serviceProvider.GetService<IAuthenticationSchemeProvider>();
         }
 
         //public async Task<HttpContext> Authenticate(ClientContext clientContext, string authorization, string scheme) {
