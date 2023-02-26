@@ -18,7 +18,7 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
             SignalARRRServerOptions serverOptions = options?.InvokeAction() ?? new SignalARRRServerOptionsBuilder();
 
             AddSignalARRRMethods(serviceCollection, serverOptions);
-            serviceCollection.AddSingleton<ServerRequestManager>();
+            //serviceCollection.AddSingleton<ServerRequestManager>();
             serviceCollection.AddSingleton<ServerPushStreamManager>();
             serviceCollection.AddSingleton<InMemoryHARRRClientManager>();
             serviceCollection.AddSingleton<IHARRRClientManager>(sp => sp.GetRequiredService<InMemoryHARRRClientManager>());

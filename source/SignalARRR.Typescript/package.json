@@ -20,6 +20,6 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "@microsoft/signalr": "^6.0.2"
+    "@microsoft/signalr": "^7.0.3"
   }
 }

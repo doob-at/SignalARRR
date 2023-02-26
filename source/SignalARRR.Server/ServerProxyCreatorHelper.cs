@@ -73,11 +73,11 @@ namespace doob.SignalARRR.Server {
             var hubContextType = typeof(ClientContextDispatcher<>).MakeGenericType(_clientContext.HARRRType);
             var harrrContext = (IClientContextDispatcher)serviceProviderScope.ServiceProvider.GetRequiredService(hubContextType);
             
-            if(_httpContext != null)
-            {
-                await harrrContext.ProxyClientAsync(_clientContext.Id, msg, _httpContext);
-                return default;
-            }
+            //if(_httpContext != null)
+            //{
+            //    await harrrContext.ProxyClientAsync(_clientContext.Id, msg, _httpContext);
+            //    return default;
+            //}
 
             return await harrrContext.InvokeClientAsync<T>(_clientContext.Id, msg, cancellationToken);
         }

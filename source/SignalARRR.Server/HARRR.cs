@@ -18,13 +18,13 @@ namespace doob.SignalARRR.Server {
         private IHARRRClientManager ClientManager { get; }
         private ISignalARRRMethodsCollection MethodsCollection { get; }
         private ISignalARRRInterfaceCollection InterfaceCollection { get; }
-        private ServerRequestManager ServerRequestManager { get; }
+        //private ServerRequestManager ServerRequestManager { get; }
 
         protected IServiceProvider ServiceProvider { get; }
         public ILogger Logger { get; set; }
 
 
-        private ClientContext _clientContext;
+        private ClientContext? _clientContext;
         public ClientContext ClientContext {
             get => _clientContext ?? ClientManager.GetClient(Context.ConnectionId);
             set => _clientContext = value;
@@ -43,7 +43,7 @@ namespace doob.SignalARRR.Server {
 
             InterfaceCollection = serviceProvider.GetNamedService<ISignalARRRInterfaceCollection>(this.GetType().FullName) ?? new SignalARRRInterfaceCollection();
 
-            ServerRequestManager = serviceProvider.GetService<ServerRequestManager>();
+            //ServerRequestManager = serviceProvider.GetService<ServerRequestManager>();
         }
 
         public override async Task OnConnectedAsync() {
@@ -143,31 +143,31 @@ namespace doob.SignalARRR.Server {
             }
         }
 
-        public async Task ReplyServerRequest(Guid id, object payload, string error) {
+        //public async Task ReplyServerRequest(Guid id, object payload, string error) {
 
-            var responseType = ServerRequestManager.GetResponseType(id);
-            var jtoken = Json.Converter.ToJToken(payload);
-            switch (responseType) {
-                case RequestType.Default: {
+        //    var responseType = ServerRequestManager.GetResponseType(id);
+        //    var jtoken = Json.Converter.ToJToken(payload);
+        //    switch (responseType) {
+        //        case RequestType.Default: {
                         
-                        ServerRequestManager.CompleteRequest(id, jtoken, error);
-                        return;
-                    }
-                case RequestType.Proxy: {
-                        var httpContext = ServerRequestManager.GetHttpContext(id);
+        //                ServerRequestManager.CompleteRequest(id, jtoken, error);
+        //                return;
+        //            }
+        //        case RequestType.Proxy: {
+        //                var httpContext = ServerRequestManager.GetHttpContext(id);
 
-                        if (error != null) {
-                            await httpContext.BadRequest(error);
-                        } else {
-                            await httpContext.Ok(jtoken);
-                        }
-                        ServerRequestManager.CompleteProxyRequest(id);
-                        return;
-                    }
-            }
+        //                if (error != null) {
+        //                    await httpContext.BadRequest(error);
+        //                } else {
+        //                    await httpContext.Ok(jtoken);
+        //                }
+        //                ServerRequestManager.CompleteProxyRequest(id);
+        //                return;
+        //            }
+        //    }
 
 
-        }
+        //}
 
 
     }

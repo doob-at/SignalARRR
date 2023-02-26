@@ -88,6 +88,9 @@ namespace doob.SignalARRR.Server {
             Console.WriteLine($"{clientContext.UserValidUntil} - {DateTime.Now}");
             if (clientContext.UserValidUntil < DateTime.Now) {
 
+                if (String.IsNullOrWhiteSpace(authorization)) {
+                    throw new ArgumentNullException("Authorization not provided!");
+                }
                 if (!authorization.Contains(" ")) {
                     authorization = $"Bearer {authorization}";
                 }

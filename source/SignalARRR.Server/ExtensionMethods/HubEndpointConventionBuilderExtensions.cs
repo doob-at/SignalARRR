@@ -19,7 +19,7 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
             this IEndpointRouteBuilder endpoints, string pattern) where THub : HARRR {
 
             var ret = endpoints.MapHub<THub>(pattern);
-            endpoints.MapPost($"{pattern}/response/{{id}}", async context => await InvokeResponse(context));
+            //endpoints.MapPost($"{pattern}/response/{{id}}", async context => await InvokeResponse(context));
             endpoints.MapGet($"{pattern}/download/{{id}}", async context => await InvokeDownload(context));
             return ret;
 
@@ -33,7 +33,7 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
 
             var ret = endpoints.MapHub<THub>(pattern, configureOptions);
 
-            endpoints.MapPost($"{pattern}/response/{{id}}", async context => await InvokeResponse(context));
+            //endpoints.MapPost($"{pattern}/response/{{id}}", async context => await InvokeResponse(context));
             endpoints.MapGet($"{pattern}/download/{{id}}", async context => await InvokeDownload(context));
 
 
@@ -41,53 +41,53 @@ namespace doob.SignalARRR.Server.ExtensionMethods {
 
         }
 
-        public static async Task InvokeResponse(HttpContext context) {
+        //public static async Task InvokeResponse(HttpContext context) {
 
-            context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = null;
-            var requestManager = context.RequestServices.GetRequiredService<ServerRequestManager>();
-            var id = context.Request.RouteValues["id"].ToString().ToGuid();
-            var error = context.Request.Query["error"].ToString().ToNull();
-            var responseType = requestManager.GetResponseType(id);
-            switch (responseType) {
-                case RequestType.Invalid: {
-                        await context.BadRequest();
-                        return;
-                    }
-                case RequestType.Default: {
+        //    context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = null;
+        //    var requestManager = context.RequestServices.GetRequiredService<ServerRequestManager>();
+        //    var id = context.Request.RouteValues["id"].ToString().ToGuid();
+        //    var error = context.Request.Query["error"].ToString().ToNull();
+        //    var responseType = requestManager.GetResponseType(id);
+        //    switch (responseType) {
+        //        case RequestType.Invalid: {
+        //                await context.BadRequest();
+        //                return;
+        //            }
+        //        case RequestType.Default: {
 
-                        JToken payload = null;
-                        if (error == null) {
-                            if (context.Request.ContentLength != null && context.Request.ContentLength > 0) {
-                                var json = await context.GetRawBodyStringAsync(Encoding.UTF8);
-                                payload = Json.Converter.ToJToken(json);
-                            }
-                        }
-                        requestManager.CompleteRequest(id, payload, error);
-                        await context.Ok();
-                        return;
-                    }
-                case RequestType.Proxy: {
+        //                JToken payload = null;
+        //                if (error == null) {
+        //                    if (context.Request.ContentLength != null && context.Request.ContentLength > 0) {
+        //                        var json = await context.GetRawBodyStringAsync(Encoding.UTF8);
+        //                        payload = Json.Converter.ToJToken(json);
+        //                    }
+        //                }
+        //                requestManager.CompleteRequest(id, payload, error);
+        //                await context.Ok();
+        //                return;
+        //            }
+        //        case RequestType.Proxy: {
 
-                        var httpContext = requestManager.GetHttpContext(id);
+        //                var httpContext = requestManager.GetHttpContext(id);
 
-                        if (error != null) {
-                            await httpContext.BadRequest(error);
-                        } else {
-                            if (context.Request.ContentLength != null && context.Request.ContentLength > 0) {
-                                httpContext.Response.Headers["Content-Type"] = context.Request.Headers["Content-Type"];
-                                await context.Request.Body
-                                    .CopyToAsync(httpContext.Response.Body, 131072, httpContext.RequestAborted)
-                                    .ConfigureAwait(false);
-                                await httpContext.Response.Body.FlushAsync(httpContext.RequestAborted)
-                                    .ConfigureAwait(false);
-                            }
-                        }
-                        requestManager.CompleteProxyRequest(id);
-                        return;
-                    }
-            }
+        //                if (error != null) {
+        //                    await httpContext.BadRequest(error);
+        //                } else {
+        //                    if (context.Request.ContentLength != null && context.Request.ContentLength > 0) {
+        //                        httpContext.Response.Headers["Content-Type"] = context.Request.Headers["Content-Type"];
+        //                        await context.Request.Body
+        //                            .CopyToAsync(httpContext.Response.Body, 131072, httpContext.RequestAborted)
+        //                            .ConfigureAwait(false);
+        //                        await httpContext.Response.Body.FlushAsync(httpContext.RequestAborted)
+        //                            .ConfigureAwait(false);
+        //                    }
+        //                }
+        //                requestManager.CompleteProxyRequest(id);
+        //                return;
+        //            }
+        //    }
 
-        }
+        //}
 
 
         public static async Task InvokeDownload(HttpContext context) {

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFrameworks>net7.0</TargetFrameworks>
     <AssemblyName>doob.SignalARRR.Server</AssemblyName>
     <RootNamespace>doob.SignalARRR.Server</RootNamespace>
     <LangVersion>9</LangVersion>
@@ -38,8 +38,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SignalARRR.ProxyGenerator\SignalARRR.ProxyGenerator.csproj" />
     <ProjectReference Include="..\SignalARRR.Common\SignalARRR.Common.csproj" />
+    <ProjectReference Include="..\SignalARRR.ProxyGenerator\SignalARRR.ProxyGenerator.csproj" />
   </ItemGroup>
 
 </Project>

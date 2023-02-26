@@ -14,12 +14,11 @@ namespace doob.SignalARRR.Server {
 
         private IHubContext<T> HubContext { get; }
 
-        private ServerRequestManager ServerRequestManager { get; }
+        
 
 
-        public ClientContextDispatcher(IHubContext<T> hubContext, ServerRequestManager serverRequestManager) {
+        public ClientContextDispatcher(IHubContext<T> hubContext) {
             HubContext = hubContext;
-            ServerRequestManager = serverRequestManager;
         }
 
 
@@ -31,12 +30,12 @@ namespace doob.SignalARRR.Server {
 
         }
 
-        public Task ProxyClientAsync(string clientId, ServerRequestMessage serverRequestMessage, HttpContext httpContext) {
+        //public Task ProxyClientAsync(string clientId, ServerRequestMessage serverRequestMessage, HttpContext httpContext) {
 
 
-            return ProxyClientMessageAsync(clientId, MethodNames.InvokeServerRequest, serverRequestMessage, httpContext);
+        //    return ProxyClientMessageAsync(clientId, MethodNames.InvokeServerRequest, serverRequestMessage, httpContext);
 
-        }
+        //}
 
         public Task SendClientAsync(string clientId, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
             return SendClientMessageAsync(clientId, MethodNames.InvokeServerMessage, serverRequestMessage, cancellationToken);
@@ -71,45 +70,45 @@ namespace doob.SignalARRR.Server {
         internal async Task<TResult> InvokeClientMessageAsync<TResult>(string clientId, string methodName, ServerRequestMessage serverRequestMessage, CancellationToken cancellationToken) {
 
 
-            var m = ServerRequestManager.AddRequest(serverRequestMessage.Id);
-            await HubContext.Clients.Client(clientId).SendCoreAsync(methodName, new[] { serverRequestMessage }, cancellationToken);
-
+            //var m = ServerRequestManager.AddRequest(serverRequestMessage.Id);
+            //await HubContext.Clients.Client(clientId).SendCoreAsync(methodName, new[] { serverRequestMessage }, cancellationToken);
+            return await HubContext.Clients.Client(clientId).InvokeCoreAsync<TResult>(methodName, new[] { serverRequestMessage }, cancellationToken);
             
-            await Task.Run(() => {
-                try {
-                    Task.WaitAny(new Task[] { m.Task }, cancellationToken);
-                } catch (Exception) {
-                    ServerRequestManager.CancelRequest(serverRequestMessage.Id);
-                    throw;
-                }
-            });
+            //await Task.Run(() => {
+            //    try {
+            //        Task.WaitAny(new Task[] { m.Task }, cancellationToken);
+            //    } catch (Exception) {
+            //        ServerRequestManager.CancelRequest(serverRequestMessage.Id);
+            //        throw;
+            //    }
+            //});
 
 
-            var jToken = await m.Task;
-            //var z = jToken.ToString();
-            //var t = jToken.ToObject<TResult>();
-            return Json.Converter.ToObject<TResult>(jToken);
+            //var jToken = await m.Task;
+            ////var z = jToken.ToString();
+            ////var t = jToken.ToObject<TResult>();
+            //return Json.Converter.ToObject<TResult>(jToken);
 
         }
 
-        internal async Task ProxyClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, HttpContext httpContext) {
+        //internal async Task ProxyClientMessageAsync(string clientId, string methodName, ServerRequestMessage serverRequestMessage, HttpContext httpContext) {
 
 
-            var m = ServerRequestManager.AddProxyRequest(serverRequestMessage.Id, httpContext);
-            await HubContext.Clients.Client(clientId).SendCoreAsync(methodName, new[] { serverRequestMessage }, httpContext.RequestAborted);
+        //    var m = ServerRequestManager.AddProxyRequest(serverRequestMessage.Id, httpContext);
+        //    await HubContext.Clients.Client(clientId).SendCoreAsync(methodName, new[] { serverRequestMessage }, httpContext.RequestAborted);
 
 
-            await Task.Run(() => {
-                try {
-                    Task.WaitAny(new Task[] { m.Task }, httpContext.RequestAborted);
-                } catch (Exception) {
-                    ServerRequestManager.CancelRequest(serverRequestMessage.Id);
-                    throw;
-                }
-            });
+        //    await Task.Run(() => {
+        //        try {
+        //            Task.WaitAny(new Task[] { m.Task }, httpContext.RequestAborted);
+        //        } catch (Exception) {
+        //            ServerRequestManager.CancelRequest(serverRequestMessage.Id);
+        //            throw;
+        //        }
+        //    });
 
-            //await m.Task;
-        }
+        //    //await m.Task;
+        //}
 
 
         //private TResult Deserialize<TResult>(Stream s) {

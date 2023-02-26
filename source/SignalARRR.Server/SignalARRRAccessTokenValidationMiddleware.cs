@@ -12,13 +12,16 @@ namespace doob.SignalARRR.Server {
         }
 
         public async Task Invoke(HttpContext httpContext) {
-
-            var isSignalRHub = httpContext.GetEndpoint().IsSignalREndpoint();
-
-            var accessToken = httpContext.Request.Query["access_token"];
-            if (isSignalRHub && !string.IsNullOrEmpty(accessToken)) {
-                httpContext.Request.Headers["Authorization"] = $"Bearer {accessToken}";
+            
+            var endp = httpContext.GetEndpoint();
+            var isSignalRHub = endp.IsSignalREndpoint();
+            if (isSignalRHub) {
+                var accessToken = httpContext.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken)) {
+                    httpContext.Request.Headers["Authorization"] = $"Bearer {accessToken}";
+                }
             }
+            
 
             await _next(httpContext);
         }
