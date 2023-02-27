@@ -26,7 +26,7 @@ namespace doob.SignalARRR.ProxyGenerator {
             var methods = typeof(T).GetMethods().ToList();
             methods = methods.WithName(binder.Name).ToList();
             methods = methods.Where(m => m.HasGenericArgumentsLengthOf(argumentTypes.Length)).ToList();
-            //methods = methods.WithParametersLengthOf(parameterTypes.Length).ToList();
+            
 
             var methodsList = methods.ToList();
             var methodCount = methodsList.Count();

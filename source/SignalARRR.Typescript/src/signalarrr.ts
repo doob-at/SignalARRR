@@ -72,7 +72,7 @@ export class HARRRConnection {
     constructor(hubConnection: signalR.HubConnection, options?: HARRRConnectionOptions) {
         this._hubConnection = hubConnection;
         this._options = options ?? new HARRRConnectionOptions();
-        this._accessTokenFactory = (<any>this._hubConnection).connection?.options?.accessTokenFactory ?? (<any>this._hubConnection).connection?._accessTokenFactory;
+        this._accessTokenFactory = (<any>this._hubConnection).connection?._options?.accessTokenFactory ?? (<any>this._hubConnection).connection?._accessTokenFactory;
 
         this._hubConnection.on("ChallengeAuthentication", (request: ServerRequestMessage) => {
 
@@ -255,7 +255,7 @@ export class HARRRConnection {
     public static create(hubConnection: signalR.HubConnection | ((builder: signalR.HubConnectionBuilder) => void), options?: HARRRConnectionOptions) {
 
         if (hubConnection instanceof Function) {
-            var hubConnectionBuilder = new signalR.HubConnectionBuilder().withUrl("", {transport: signalR.HttpTransportType.WebSockets});
+            var hubConnectionBuilder = new signalR.HubConnectionBuilder();
             hubConnection(hubConnectionBuilder);
             return new HARRRConnection(hubConnectionBuilder.build(), options);
         }

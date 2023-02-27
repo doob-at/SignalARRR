@@ -9,7 +9,7 @@ export class HARRRConnection {
         this._serverRequestHandlers = new Map();
         this._hubConnection = hubConnection;
         this._options = options !== null && options !== void 0 ? options : new HARRRConnectionOptions();
-        this._accessTokenFactory = (_c = (_b = (_a = this._hubConnection.connection) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.accessTokenFactory) !== null && _c !== void 0 ? _c : (_d = this._hubConnection.connection) === null || _d === void 0 ? void 0 : _d._accessTokenFactory;
+        this._accessTokenFactory = (_c = (_b = (_a = this._hubConnection.connection) === null || _a === void 0 ? void 0 : _a._options) === null || _b === void 0 ? void 0 : _b.accessTokenFactory) !== null && _c !== void 0 ? _c : (_d = this._hubConnection.connection) === null || _d === void 0 ? void 0 : _d._accessTokenFactory;
         this._hubConnection.on("ChallengeAuthentication", (request) => {
             const msg = new ClientResponseMessage(request.Id);
             msg.Payload = this._accessTokenFactory();
@@ -189,7 +189,7 @@ export class HARRRConnection {
     }
     static create(hubConnection, options) {
         if (hubConnection instanceof Function) {
-            var hubConnectionBuilder = new signalR.HubConnectionBuilder().withUrl("", { transport: signalR.HttpTransportType.WebSockets });
+            var hubConnectionBuilder = new signalR.HubConnectionBuilder();
             hubConnection(hubConnectionBuilder);
             return new HARRRConnection(hubConnectionBuilder.build(), options);
         }
