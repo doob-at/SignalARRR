@@ -85,7 +85,6 @@ namespace doob.SignalARRR.Server {
             ctx.RequestServices = _serviceProvider;
 
             AuthenticateResult authenticateResult = AuthenticateResult.NoResult();
-            Console.WriteLine($"{clientContext.UserValidUntil} - {DateTime.Now}");
             if (clientContext.UserValidUntil < DateTime.Now) {
 
                 if (String.IsNullOrWhiteSpace(authorization)) {

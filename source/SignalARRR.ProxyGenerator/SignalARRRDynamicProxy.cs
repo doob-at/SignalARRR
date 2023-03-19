@@ -95,9 +95,7 @@ namespace doob.SignalARRR.ProxyGenerator {
                     return true;
                 }
             }
-
-            Console.WriteLine($"Invoked Method: {methodInfo}");
-
+            
 
             result = null;
             return false;
