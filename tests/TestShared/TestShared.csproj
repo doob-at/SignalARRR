@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="doob.Reflectensions" Version="6.2.1-beta0013" />
-    <PackageReference Include="doob.Reflectensions.ExpandableObject" Version="6.2.1-beta0013" />
-    <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
+    <PackageReference Include="doob.Reflectensions" />
+    <PackageReference Include="doob.Reflectensions.ExpandableObject" />
+    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
 
 

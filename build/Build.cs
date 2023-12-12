@@ -15,8 +15,7 @@ using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
-[CheckBuildProjectConfigurations]
-[ShutdownDotNetAfterServerBuild]
+
 class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Pack);
@@ -92,9 +91,8 @@ class Build : NukeBuild
         .Requires(() => Configuration.Equals(Configuration.Release))
         .Executes(() =>
         {
-            GlobFiles(OutputDirectory, "*.nupkg")
-                .NotEmpty()
-                .Where(x => !x.EndsWith("symbols.nupkg"))
+           OutputDirectory.GlobFiles("*.nupkg")
+                .Where(x => !x.ToString().EndsWith("symbols.nupkg"))
                 .ForEach(x =>
                 {
                     var nugetPushSettings = new DotNetNuGetPushSettings()
